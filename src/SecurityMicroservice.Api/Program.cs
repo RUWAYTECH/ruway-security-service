@@ -74,13 +74,14 @@ builder.Services.AddOpenIddict()
         options.UseAspNetCore();
     });
 
-// Add repositories
+// Add repositories and services
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
-// Add services
+// Business services
 builder.Services.AddScoped<IPasswordService, PasswordService>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IMenuService, MenuService>();
 
 // Add AutoMapper
 var mapperConfig = new MapperConfiguration(cfg =>
@@ -90,6 +91,13 @@ var mapperConfig = new MapperConfiguration(cfg =>
 builder.Services.AddSingleton(mapperConfig.CreateMapper());
 
 // Add authorization
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = OpenIddict.Validation.AspNetCore.OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = OpenIddict.Validation.AspNetCore.OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
+    options.DefaultAuthenticateScheme = OpenIddict.Validation.AspNetCore.OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
+});
+
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<PermissionAuthorizationHandler>();
 

@@ -14,6 +14,7 @@ public interface IUserRepository
     Task DeleteAsync(Guid userId);
     Task<List<User>> GetByApplicationIdAsync(Guid applicationId);
     Task<List<string>> GetUserPermissionsAsync(Guid userId);
+    Task<List<Permission>> GetUserPermissionEntitiesAsync(Guid userId);
     Task<List<string>> GetUserRolesAsync(Guid userId);
     Task<List<string>> GetUserApplicationScopesAsync(Guid userId);
     Task<User?> GetByTokenAsync(string token);
@@ -128,6 +129,40 @@ public class UserRepository : IUserRepository
             .ToListAsync();
 
         return permissions.Concat(rolePermissions).Distinct().ToList();
+    }
+
+    public async Task<List<Permission>> GetUserPermissionEntitiesAsync(Guid userId)
+    {
+        // Obtener permisos directos del usuario
+        var directPermissions = await _context.UserPermissions
+            .Where(up => up.UserId == userId)
+            .Include(up => up.Permission)
+                .ThenInclude(p => p.Option)
+                    .ThenInclude(o => o.Module)
+                        .ThenInclude(m => m.Application)
+            .Where(up => up.Permission.IsActive && up.Permission.Option.IsActive && up.Permission.Option.Module.Application.IsActive)
+            .Select(up => up.Permission)
+            .ToListAsync();
+
+        // Obtener permisos a través de roles
+        var rolePermissions = await _context.UserRoles
+            .Where(ur => ur.UserId == userId)
+            .Include(ur => ur.Role)
+                .ThenInclude(r => r.Permissions)
+                    .ThenInclude(p => p.Option)
+                        .ThenInclude(o => o.Module)
+                            .ThenInclude(m => m.Application)
+            .SelectMany(ur => ur.Role.Permissions)
+            .Where(p => p.IsActive && p.Option.IsActive && p.Option.Module.Application.IsActive)
+            .ToListAsync();
+
+        // Combinar y eliminar duplicados
+        var allPermissions = directPermissions.Concat(rolePermissions)
+            .GroupBy(p => new { p.PermissionId })
+            .Select(g => g.First())
+            .ToList();
+
+        return allPermissions;
     }
 
     public async Task<List<string>> GetUserRolesAsync(Guid userId)
