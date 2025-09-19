@@ -22,6 +22,7 @@ The solution follows a layered architecture pattern:
 - JWT token generation with custom claims
 - Password hashing with PBKDF2
 - Audit logging
+- **Dynamic Menu Generation**: Menu system based on user permissions per application
 
 ### Security Features
 - OpenIddict 4.x integration for OAuth2/OpenID Connect
@@ -33,8 +34,9 @@ The solution follows a layered architecture pattern:
 ### Database Entities
 - **Users**: Authentication and basic user info
 - **Applications**: Different systems (AUDITORIA, MEMOS, etc.)
+- **Modules**: Logical groupings within applications
+- **Options**: API endpoints/routes within modules
 - **Roles**: Application-specific roles
-- **Options**: API endpoints/routes
 - **Permissions**: Role + Option + Action combinations
 - **Audit**: System activity logging
 
@@ -49,8 +51,8 @@ The solution follows a layered architecture pattern:
 
 1. Clone the repository
 ```bash
-git clone <repository-url>
-cd SecurityMicroservice
+git clone https://github.com/cnvillegaschavez/ruway-security-service.git
+cd ruway-security-service
 ```
 
 2. Update connection string in `appsettings.json`
@@ -116,6 +118,49 @@ curl -X POST https://localhost:7001/connect/token \
 }
 ```
 
+### Dynamic Menu System
+
+#### Get User Menu by Application
+```bash
+curl -X GET https://localhost:7001/api/menu/SECURITY \
+  -H "Authorization: Bearer <access_token>"
+```
+
+#### Get All User Menus
+```bash
+curl -X GET https://localhost:7001/api/menu \
+  -H "Authorization: Bearer <access_token>"
+```
+
+**Menu Response Example:**
+```json
+{
+  "applicationCode": "SECURITY",
+  "applicationName": "Sistema de Seguridad",
+  "modules": [
+    {
+      "moduleId": "...",
+      "code": "USER_ADMIN",
+      "name": "Administración de Usuarios",
+      "description": "Gestión de usuarios del sistema",
+      "icon": "users",
+      "order": 1,
+      "options": [
+        {
+          "optionId": "...",
+          "code": "USER_CRUD",
+          "name": "Gestión de Usuarios",
+          "route": "/api/users",
+          "httpMethod": "GET",
+          "icon": "user-cog",
+          "allowedActions": ["READ", "CREATE", "UPDATE"]
+        }
+      ]
+    }
+  ]
+}
+```
+
 ### User Management
 
 #### Get All Users
@@ -156,14 +201,15 @@ public async Task<IActionResult> GetExpedientes()
 ### Key Relationships
 - Users ↔ Applications (Many-to-Many via UserApplications)
 - Users ↔ Roles (Many-to-Many via UserRoles)  
+- Applications → Modules → Options (One-to-Many chain)
 - Roles → Application (Many-to-One)
 - Permissions → Role + Option (Many-to-One each)
-- Options → Application (Many-to-One)
 
 ### Seed Data
 The system includes initial seed data:
 - Admin user with full permissions
-- AUDITORIA and MEMOS applications
+- AUDITORIA, MEMOS, and SECURITY applications
+- Sample modules and options structure
 - Basic roles and permissions
 - Sample API options
 
@@ -179,6 +225,7 @@ dotnet test tests/SecurityMicroservice.UnitTests/
 - Permission authorization handler
 - Password hashing/verification
 - Token claim generation
+- Menu service functionality
 
 ## Configuration
 
@@ -225,6 +272,24 @@ ENTRYPOINT ["dotnet", "SecurityMicroservice.Api.dll"]
 ## API Documentation
 
 Complete API documentation is available via Swagger UI at `/swagger` when running in development mode.
+
+### Available Endpoints
+
+#### Authentication
+- `POST /connect/token` - OAuth2 token endpoint
+- `POST /api/auth/forgot-password` - Password recovery
+- `POST /api/auth/reset-password` - Password reset
+
+#### User Management  
+- `GET /api/users` - List users
+- `POST /api/users` - Create user
+- `GET /api/users/{id}` - Get user by ID
+- `PUT /api/users/{id}` - Update user
+- `DELETE /api/users/{id}` - Delete user
+
+#### Menu System
+- `GET /api/menu` - Get all user menus
+- `GET /api/menu/{applicationCode}` - Get menu by application
 
 ### Scopes
 - `auditoria`: Access to audit system
