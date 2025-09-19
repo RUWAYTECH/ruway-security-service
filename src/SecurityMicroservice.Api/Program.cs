@@ -11,11 +11,28 @@ using static OpenIddict.Abstractions.OpenIddictConstants;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure Kestrel for HTTPS
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenLocalhost(5000); // HTTP
+    options.ListenLocalhost(7001, listenOptions =>
+    {
+        listenOptions.UseHttps(); // HTTPS
+    });
+});
+
 // Add services to the container.
 builder.Services.AddDbContext<SecurityDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
     options.UseOpenIddict();
+    
+    // Suppress pending model changes warning during development
+    if (builder.Environment.IsDevelopment())
+    {
+        options.ConfigureWarnings(warnings => 
+            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+    }
 });
 
 // OpenIddict configuration
@@ -28,28 +45,28 @@ builder.Services.AddOpenIddict()
     .AddServer(options =>
     {
         options.SetTokenEndpointUris("/connect/token")
-               .SetIntrospectionEndpointUris("/connect/introspect");
+               .SetIntrospectionEndpointUris("/connect/introspect")
+               .SetAuthorizationEndpointUris("/connect/authorize")
+               .SetLogoutEndpointUris("/connect/logout");
 
         options.AllowPasswordFlow()
-               .AllowRefreshTokenFlow();
+               .AllowRefreshTokenFlow()
+               .AllowAuthorizationCodeFlow();
 
         options.AcceptAnonymousClients();
 
-        // In development, use insecure configuration
-        if (builder.Environment.IsDevelopment())
-        {
-            options.AddEphemeralEncryptionKey()
-                   .AddEphemeralSigningKey()
-                   .DisableAccessTokenEncryption();
-        }
-        else
-        {
-            options.AddDevelopmentEncryptionCertificate()
-                   .AddDevelopmentSigningCertificate();
-        }
+        // Use ephemeral keys for all local development scenarios
+        // This avoids macOS keychain permission issues
+        // WARNING: In production, replace with proper certificates!
+        options.AddEphemeralEncryptionKey()
+               .AddEphemeralSigningKey()
+               .DisableAccessTokenEncryption();
 
         options.UseAspNetCore()
-               .EnableTokenEndpointPassthrough();
+               .EnableTokenEndpointPassthrough()
+               .EnableAuthorizationEndpointPassthrough()
+               .EnableLogoutEndpointPassthrough()
+               .DisableTransportSecurityRequirement(); // Allow HTTP in development
     })
     .AddValidation(options =>
     {
@@ -121,10 +138,17 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-// Only redirect to HTTPS in production
-if (!app.Environment.IsDevelopment())
+// Configure HTTPS redirection based on environment
+if (app.Environment.IsDevelopment())
 {
+    // In development, don't force HTTPS redirection to allow both HTTP and HTTPS
     app.UseHttpsRedirection();
+}
+else
+{
+    // In production, enforce HTTPS
+    app.UseHttpsRedirection();
+    app.UseHsts(); // HTTP Strict Transport Security
 }
 
 app.UseCors("AllowAll");

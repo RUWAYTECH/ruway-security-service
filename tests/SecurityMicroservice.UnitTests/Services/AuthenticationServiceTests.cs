@@ -96,7 +96,7 @@ public class AuthenticationServiceTests : IDisposable
     public async Task GenerateTokenResponseAsync_ShouldIncludeUserClaims()
     {
         // Arrange
-        var app = new Application
+        var app = new Domain.Entities.Application
         {
             Code = "AUDITORIA",
             Name = "Test App",

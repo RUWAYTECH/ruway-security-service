@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
+using SecurityMicroservice.Application.Services;
+using SecurityMicroservice.Shared.DTOs;
 using System.Collections.Immutable;
 using System.Security.Claims;
 using static OpenIddict.Abstractions.OpenIddictConstants;
@@ -119,6 +121,202 @@ public class AuthController : ControllerBase
         }
 
         throw new InvalidOperationException("The specified grant type is not supported.");
+    }
+
+    [HttpPost("~/api/auth/forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var result = await _authenticationService.ForgotPasswordAsync(request);
+        return Ok(result);
+    }
+
+    [HttpPost("~/api/auth/reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var result = await _authenticationService.ResetPasswordAsync(request);
+        
+        if (result.Success)
+        {
+            return Ok(result);
+        }
+        
+        return BadRequest(result);
+    }
+
+    /// <summary>
+    /// OAuth 2.0 Authorization endpoint (GET) - Initiates authorization flow
+    /// Handles authorization requests and validates OAuth parameters
+    /// </summary>
+    [HttpGet("authorize")]
+    public IActionResult Authorize()
+    {
+        // Parse OpenID Connect request manually from query parameters
+        var request = new OpenIddictRequest();
+        
+        foreach (var parameter in Request.Query)
+        {
+            request.SetParameter(parameter.Key, parameter.Value.ToString());
+        }
+
+        // Validate the authorization request
+        if (string.IsNullOrEmpty(request.ClientId))
+        {
+            return BadRequest(new
+            {
+                error = Errors.InvalidRequest,
+                error_description = "The 'client_id' parameter is missing."
+            });
+        }
+
+        if (string.IsNullOrEmpty(request.ResponseType))
+        {
+            return BadRequest(new
+            {
+                error = Errors.InvalidRequest,
+                error_description = "The 'response_type' parameter is missing."
+            });
+        }
+
+        // Validate response_type (should be 'code' for authorization code flow)
+        if (!request.ResponseType.Equals("code", StringComparison.OrdinalIgnoreCase))
+        {
+            return BadRequest(new
+            {
+                error = Errors.UnsupportedResponseType,
+                error_description = "Only 'code' response type is supported."
+            });
+        }
+
+        // Check if user is authenticated
+        if (!User.Identity?.IsAuthenticated ?? true)
+        {
+            // User is not authenticated, initiate authentication
+            return Challenge();
+        }
+
+        // User is authenticated, show consent page or auto-approve
+        // For simplicity, we'll auto-approve if user is authenticated
+        // In production, you'd typically show a consent screen
+
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
+                     User.FindFirst(Claims.Subject)?.Value;
+
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Challenge();
+        }
+
+        // Create authorization code identity
+        var identity = new ClaimsIdentity(
+            authenticationType: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+            nameType: Claims.Name,
+            roleType: Claims.Role);
+
+        identity.SetClaim(Claims.Subject, userId);
+
+        // Set requested scopes (or default scopes)
+        var scopes = request.GetScopes();
+        if (!scopes.Any())
+        {
+            scopes = ImmutableArray.Create(Scopes.OpenId, "security", "auditoria", "memos");
+        }
+        identity.SetScopes(scopes);
+
+        // Set resources
+        identity.SetResources("security_api");
+
+        // Set destinations for authorization code
+        identity.SetDestinations(GetDestinations);
+
+        return SignIn(new ClaimsPrincipal(identity), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+    }
+
+    /// <summary>
+    /// OAuth 2.0 Authorization endpoint (POST) - Processes user consent
+    /// Handles user authorization decisions (approve/deny)
+    /// </summary>
+    [HttpPost("authorize")]
+    public IActionResult Accept([FromForm] string? submit)
+    {
+        // Parse OpenID Connect request manually from form data
+        var request = new OpenIddictRequest();
+        
+        if (Request.HasFormContentType)
+        {
+            foreach (var parameter in Request.Form)
+            {
+                request.SetParameter(parameter.Key, parameter.Value.ToString());
+            }
+        }
+
+        // Check if user denied the authorization
+        if (string.Equals(submit, "deny", StringComparison.InvariantCultureIgnoreCase))
+        {
+            return Forbid(
+                authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                properties: new AuthenticationProperties(new Dictionary<string, string?>
+                {
+                    [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.AccessDenied,
+                    [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = 
+                        "The authorization was denied by the user."
+                }));
+        }
+
+        // Ensure user is authenticated
+        if (!User.Identity?.IsAuthenticated ?? true)
+        {
+            return Challenge();
+        }
+
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
+                     User.FindFirst(Claims.Subject)?.Value;
+
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Challenge();
+        }
+
+        // User approved the authorization, create authorization code
+        var identity = new ClaimsIdentity(
+            authenticationType: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+            nameType: Claims.Name,
+            roleType: Claims.Role);
+
+        identity.SetClaim(Claims.Subject, userId);
+
+        // Set approved scopes
+        var scopes = request.GetScopes();
+        if (!scopes.Any())
+        {
+            scopes = ImmutableArray.Create(Scopes.OpenId, "security", "auditoria", "memos");
+        }
+        identity.SetScopes(scopes);
+
+        // Set resources
+        identity.SetResources("security_api");
+
+        // Set destinations
+        identity.SetDestinations(GetDestinations);
+
+        return SignIn(new ClaimsPrincipal(identity), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+    }
+
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout()
+    {
+        // TODO: Implement logout logic
+        await HttpContext.SignOutAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+        return Ok(new { message = "Logged out successfully" });
     }
 
     private static IEnumerable<string> GetDestinations(Claim claim)

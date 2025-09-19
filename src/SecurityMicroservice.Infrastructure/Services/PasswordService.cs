@@ -6,6 +6,7 @@ public interface IPasswordService
 {
     string HashPassword(string password);
     bool VerifyPassword(string password, string hash);
+    string GenerateRandomToken();
 }
 
 public class PasswordService : IPasswordService
@@ -19,7 +20,7 @@ public class PasswordService : IPasswordService
     {
         var salt = RandomNumberGenerator.GetBytes(SaltSize);
         var key = Rfc2898DeriveBytes.Pbkdf2(password, salt, Iterations, Algorithm, KeySize);
-        
+
         return Convert.ToBase64String(salt.Concat(key).ToArray());
     }
 
@@ -28,9 +29,17 @@ public class PasswordService : IPasswordService
         var hashBytes = Convert.FromBase64String(hash);
         var salt = hashBytes.Take(SaltSize).ToArray();
         var key = hashBytes.Skip(SaltSize).ToArray();
-        
+
         var keyToCheck = Rfc2898DeriveBytes.Pbkdf2(password, salt, Iterations, Algorithm, KeySize);
-        
+
         return key.SequenceEqual(keyToCheck);
+    }
+
+    public string GenerateRandomToken()
+    {
+        using var rng = RandomNumberGenerator.Create();
+        var tokenBytes = new byte[32];
+        rng.GetBytes(tokenBytes);
+        return Convert.ToBase64String(tokenBytes);
     }
 }

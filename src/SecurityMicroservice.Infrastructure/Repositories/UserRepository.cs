@@ -16,6 +16,7 @@ public interface IUserRepository
     Task<List<string>> GetUserPermissionsAsync(Guid userId);
     Task<List<string>> GetUserRolesAsync(Guid userId);
     Task<List<string>> GetUserApplicationScopesAsync(Guid userId);
+    Task<User> GetByTokenAsync(string token);
 }
 
 public class UserRepository : IUserRepository
@@ -144,5 +145,14 @@ public class UserRepository : IUserRepository
             .Where(ua => ua.Application.IsActive)
             .Select(ua => ua.Application.Code.ToLower())
             .ToListAsync();
+    }
+
+    public async Task<User> GetByTokenAsync(string token)
+    {
+        User? user = await _context.Users
+                    .FirstOrDefaultAsync(u => u.PasswordResetToken == token
+                        && u.PasswordResetTokenExpires > DateTime.UtcNow
+                        && u.Status == UserStatus.Active);
+        return user;
     }
 }

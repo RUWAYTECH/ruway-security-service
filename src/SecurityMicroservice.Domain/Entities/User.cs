@@ -9,7 +9,9 @@ public class User
     public Guid? EmployeeId { get; set; } // Reference to master microservice
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? LastLoginAt { get; set; }
-    
+
+    public string? PasswordResetToken { get; set; }
+    public DateTime? PasswordResetTokenExpires { get; set; }    
     // Navigation properties
     public ICollection<UserApplication> UserApplications { get; set; } = new List<UserApplication>();
     public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();

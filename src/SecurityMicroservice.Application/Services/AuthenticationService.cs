@@ -10,6 +10,8 @@ public interface IAuthenticationService
     Task<User?> ValidateUserAsync(string username, string password);
     Task<TokenResponse> GenerateTokenResponseAsync(User user);
     Task UpdateLastLoginAsync(Guid userId);
+    Task<ForgotPasswordResponse> ForgotPasswordAsync(ForgotPasswordRequest request);
+    Task<ResetPasswordResponse> ResetPasswordAsync(ResetPasswordRequest request);
 }
 
 public class AuthenticationService : IAuthenticationService
@@ -28,7 +30,7 @@ public class AuthenticationService : IAuthenticationService
     public async Task<User?> ValidateUserAsync(string username, string password)
     {
         var user = await _userRepository.GetByUsernameAsync(username);
-        
+
         if (user == null || user.Status != UserStatus.Active)
         {
             return null;
@@ -65,6 +67,63 @@ public class AuthenticationService : IAuthenticationService
         {
             user.LastLoginAt = DateTime.UtcNow;
             await _userRepository.UpdateAsync(user);
+        }
+    }
+
+    public async Task<ForgotPasswordResponse> ForgotPasswordAsync(ForgotPasswordRequest request)
+    {
+        var user = await _userRepository.GetByUsernameAsync(request.Username);
+        if (user == null)
+        {
+            // Don't reveal if user exists for security
+            return new ForgotPasswordResponse
+            {
+                Success = true,
+                Message = "If the username exists, a password reset email has been sent."
+            };
+        }
+
+          user.PasswordResetToken = _passwordService.GenerateRandomToken();
+            user.PasswordResetTokenExpires = DateTime.UtcNow.AddHours(1);
+
+            await _userRepository.UpdateAsync(user);
+
+        // For now, just return success message
+        return new ForgotPasswordResponse
+        {
+            Success = true,
+            Message = "If the username exists, a password reset email has been sent."
+        };
+    }
+
+    public async Task<ResetPasswordResponse> ResetPasswordAsync(ResetPasswordRequest request)
+    {
+        var response = new ResetPasswordResponse { Success = false };
+        try
+        {
+
+            var user = await _userRepository.GetByTokenAsync(request.Token);
+
+            if (user == null)
+            {
+                return response;
+            }
+
+            user.PasswordHash = _passwordService.HashPassword(request.NewPassword);
+            user.PasswordResetToken = null;
+            user.PasswordResetTokenExpires = null;
+
+            await _userRepository.UpdateAsync(user);
+
+            //  await _auditService.LogAsync("User", AuditAction.PasswordChange, user.Id);
+
+            response.Success = true;
+            return response;
+        }
+        catch (Exception ex)
+        {
+
+            return response;
         }
     }
 }
