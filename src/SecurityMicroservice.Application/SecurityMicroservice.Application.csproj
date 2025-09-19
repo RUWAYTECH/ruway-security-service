@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="11.9.0" />
+    <PackageReference Include="AutoMapper" Version="13.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SecurityMicroservice.Domain\SecurityMicroservice.Domain.csproj" />
+    <ProjectReference Include="..\SecurityMicroservice.Infrastructure\SecurityMicroservice.Infrastructure.csproj" />
+    <ProjectReference Include="..\SecurityMicroservice.Shared\SecurityMicroservice.Shared.csproj" />
+  </ItemGroup>
+</Project>

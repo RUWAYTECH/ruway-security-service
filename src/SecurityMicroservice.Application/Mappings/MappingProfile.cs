@@ -1,0 +1,32 @@
+using AutoMapper;
+using SecurityMicroservice.Domain.Entities;
+using SecurityMicroservice.Shared.DTOs;
+
+namespace SecurityMicroservice.Application.Mappings;
+
+public class MappingProfile : Profile
+{
+    public MappingProfile()
+    {
+        CreateMap<User, UserDto>()
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
+            .ForMember(dest => dest.Applications, opt => opt.MapFrom(src => 
+                src.UserApplications.Where(ua => ua.IsActive).Select(ua => ua.Application)))
+            .ForMember(dest => dest.Roles, opt => opt.MapFrom(src =>
+                src.UserRoles.Where(ur => ur.Role.IsActive).Select(ur => ur.Role)));
+
+        CreateMap<Domain.Entities.Application, ApplicationDto>();
+        
+        CreateMap<Role, RoleDto>()
+            .ForMember(dest => dest.ApplicationCode, opt => opt.MapFrom(src => src.Application.Code));
+
+        CreateMap<Permission, PermissionDto>()
+            .ForMember(dest => dest.OptionName, opt => opt.MapFrom(src => src.Option.Name))
+            .ForMember(dest => dest.OptionRoute, opt => opt.MapFrom(src => src.Option.Route))
+            .ForMember(dest => dest.HttpMethod, opt => opt.MapFrom(src => src.Option.HttpMethod))
+            .ForMember(dest => dest.Module, opt => opt.MapFrom(src => src.Option.Module));
+
+        CreateMap<Option, OptionDto>()
+            .ForMember(dest => dest.ApplicationCode, opt => opt.MapFrom(src => src.Application.Code));
+    }
+}
