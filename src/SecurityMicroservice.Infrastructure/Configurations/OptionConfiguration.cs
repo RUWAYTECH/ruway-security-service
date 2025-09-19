@@ -12,9 +12,8 @@ public class OptionConfiguration : IEntityTypeConfiguration<Option>
         
         builder.HasKey(o => o.OptionId);
         
-        builder.Property(o => o.Module)
-            .IsRequired()
-            .HasMaxLength(100);
+        builder.Property(o => o.ModuleId)
+            .IsRequired();
         
         builder.Property(o => o.Name)
             .IsRequired()
@@ -34,12 +33,12 @@ public class OptionConfiguration : IEntityTypeConfiguration<Option>
         builder.Property(o => o.CreatedAt)
             .IsRequired();
         
-        builder.HasOne(o => o.Application)
+        builder.HasOne(o => o.Module)
             .WithMany(a => a.Options)
-            .HasForeignKey(o => o.ApplicationId)
+            .HasForeignKey(o => o.ModuleId)
             .OnDelete(DeleteBehavior.Cascade);
-        
-        builder.HasIndex(o => new { o.ApplicationId, o.Route, o.HttpMethod })
+
+        builder.HasIndex(o => new { o.ModuleId, o.Route, o.HttpMethod })
             .IsUnique();
     }
 }

@@ -1,6 +1,8 @@
+using SecurityMicroservice.Domain.Common;
+
 namespace SecurityMicroservice.Domain.Entities;
 
-public class UserPermission
+public class UserPermission: BaseEntity
 {
     public Guid UserId { get; set; }
     public Guid PermissionId { get; set; }

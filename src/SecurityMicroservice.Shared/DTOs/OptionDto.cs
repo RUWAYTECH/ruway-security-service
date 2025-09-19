@@ -5,7 +5,8 @@ public class OptionDto
     public Guid OptionId { get; set; }
     public Guid ApplicationId { get; set; }
     public string ApplicationCode { get; set; } = string.Empty;
-    public string Module { get; set; } = string.Empty;
+    public string ModuleCode { get; set; } = string.Empty;
+    public string ModuleName { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Route { get; set; } = string.Empty;
     public string HttpMethod { get; set; } = string.Empty;

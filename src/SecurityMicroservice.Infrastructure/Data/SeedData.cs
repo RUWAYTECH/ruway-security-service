@@ -21,7 +21,8 @@ public static class SeedData
             Code = ApplicationCodes.Auditoria,
             Name = "Sistema de Auditoría",
             BaseUrl = "https://auditoria.company.com",
-            IsActive = true
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
         };
 
         var memosApp = new Application
@@ -30,7 +31,8 @@ public static class SeedData
             Code = ApplicationCodes.Memos,
             Name = "Sistema de Memos",
             BaseUrl = "https://memos.company.com",
-            IsActive = true
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
         };
 
         var securityApp = new Application
@@ -39,7 +41,8 @@ public static class SeedData
             Code = ApplicationCodes.Security,
             Name = "Sistema de Seguridad",
             BaseUrl = "https://security.company.com",
-            IsActive = true
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
         };
 
         await context.Applications.AddRangeAsync(auditoriaApp, memosApp, securityApp);
@@ -52,7 +55,8 @@ public static class SeedData
             Code = "SUPERADMIN",
             Name = "Super Administrador",
             Description = "Acceso total al sistema de seguridad",
-            IsActive = true
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
         };
 
         var auditorAdminRole = new Role
@@ -62,7 +66,8 @@ public static class SeedData
             Code = "AUDITOR_ADMIN",
             Name = "Administrador de Auditoría",
             Description = "Administrador del sistema de auditoría",
-            IsActive = true
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
         };
 
         var memoUserRole = new Role
@@ -72,44 +77,78 @@ public static class SeedData
             Code = "MEMO_USER",
             Name = "Usuario de Memos",
             Description = "Usuario básico del sistema de memos",
-            IsActive = true
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
         };
 
         await context.Roles.AddRangeAsync(superAdminRole, auditorAdminRole, memoUserRole);
+
+        // Create modules
+        var auditoriaExpedientesModule = new Module
+        {
+            ModuleId = Guid.NewGuid(),
+            Code = ApplicationCodes.Auditoria,
+            ApplicationId = auditoriaApp.ApplicationId,
+            Name = "EXPEDIENTES",
+            Description = "Módulo de gestión de expedientes",
+            Icon = "fa-folder",
+            Order = 1,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var memosDocumentosModule = new Module
+        {
+            ModuleId = Guid.NewGuid(),
+            ApplicationId = memosApp.ApplicationId,
+            Code = ApplicationCodes.Memos,
+            Name = "DOCUMENTOS",
+            Description = "Módulo de gestión de documentos",
+            Icon = "fa-file",
+            Order = 1,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        await context.Modules.AddRangeAsync(auditoriaExpedientesModule, memosDocumentosModule);
 
         // Create options for Auditoria
         var auditoriaExpedientesOption = new Option
         {
             OptionId = Guid.NewGuid(),
-            ApplicationId = auditoriaApp.ApplicationId,
-            Module = "EXPEDIENTES",
+            ModuleId = auditoriaExpedientesModule.ModuleId,
+            Code = "EXPEDIENTES",
             Name = "EXPEDIENTES",
+            Icon = "fa-search",
             Route = "/api/expedientes",
             HttpMethod = "GET",
-            IsActive = true
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
         };
 
         var auditoriaExpedientesPostOption = new Option
         {
             OptionId = Guid.NewGuid(),
-            ApplicationId = auditoriaApp.ApplicationId,
-            Module = "EXPEDIENTES",
+            ModuleId = auditoriaExpedientesModule.ModuleId,
+            Code = "EXPEDIENTES",
             Name = "EXPEDIENTES",
+            Icon = "fa-plus",
             Route = "/api/expedientes",
             HttpMethod = "POST",
-            IsActive = true
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
         };
 
         // Create options for Memos
         var memosDocumentosOption = new Option
         {
             OptionId = Guid.NewGuid(),
-            ApplicationId = memosApp.ApplicationId,
-            Module = "DOCUMENTOS",
+            ModuleId = memosDocumentosModule.ModuleId,
+            Code = "DOCUMENTOS",
             Name = "DOCUMENTOS",
+            Icon = "fa-file-text",
             Route = "/api/documentos",
             HttpMethod = "GET",
-            IsActive = true
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
         };
 
         await context.Options.AddRangeAsync(
@@ -124,7 +163,8 @@ public static class SeedData
             RoleId = auditorAdminRole.RoleId,
             OptionId = auditoriaExpedientesOption.OptionId,
             ActionCode = ActionCodes.Read,
-            IsActive = true
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
         };
 
         var auditorPermissionCreate = new Permission
@@ -133,7 +173,8 @@ public static class SeedData
             RoleId = auditorAdminRole.RoleId,
             OptionId = auditoriaExpedientesPostOption.OptionId,
             ActionCode = ActionCodes.Create,
-            IsActive = true
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
         };
 
         var memoPermissionRead = new Permission
@@ -142,7 +183,8 @@ public static class SeedData
             RoleId = memoUserRole.RoleId,
             OptionId = memosDocumentosOption.OptionId,
             ActionCode = ActionCodes.Read,
-            IsActive = true
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
         };
 
         await context.Permissions.AddRangeAsync(
@@ -157,7 +199,11 @@ public static class SeedData
             Username = "admin",
             PasswordHash = passwordService.HashPassword("admin123"),
             Status = UserStatus.Active,
-            EmployeeId = Guid.NewGuid()
+            EmployeeId = Guid.NewGuid(),
+            CreatedAt = DateTime.UtcNow,
+            LastLoginAt = null,
+            PasswordResetToken = null,
+            PasswordResetTokenExpires = null
         };
 
         await context.Users.AddAsync(adminUser);
@@ -167,21 +213,24 @@ public static class SeedData
         {
             UserId = adminUser.UserId,
             ApplicationId = auditoriaApp.ApplicationId,
-            IsActive = true
+            IsActive = true,
+            AssignedAt = DateTime.UtcNow
         };
 
         var userMemosApp = new UserApplication
         {
             UserId = adminUser.UserId,
             ApplicationId = memosApp.ApplicationId,
-            IsActive = true
+            IsActive = true,
+            AssignedAt = DateTime.UtcNow
         };
 
         var userSecurityApp = new UserApplication
         {
             UserId = adminUser.UserId,
             ApplicationId = securityApp.ApplicationId,
-            IsActive = true
+            IsActive = true,
+            AssignedAt = DateTime.UtcNow
         };
 
         await context.UserApplications.AddRangeAsync(
@@ -193,19 +242,22 @@ public static class SeedData
         var userSuperAdminRole = new UserRole
         {
             UserId = adminUser.UserId,
-            RoleId = superAdminRole.RoleId
+            RoleId = superAdminRole.RoleId,
+            AssignedAt = DateTime.UtcNow
         };
 
         var userAuditorRole = new UserRole
         {
             UserId = adminUser.UserId,
-            RoleId = auditorAdminRole.RoleId
+            RoleId = auditorAdminRole.RoleId,
+            AssignedAt = DateTime.UtcNow
         };
 
         var userMemoRole = new UserRole
         {
             UserId = adminUser.UserId,
-            RoleId = memoUserRole.RoleId
+            RoleId = memoUserRole.RoleId,
+            AssignedAt = DateTime.UtcNow
         };
 
         await context.UserRoles.AddRangeAsync(

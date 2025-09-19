@@ -1,6 +1,8 @@
+using SecurityMicroservice.Domain.Common;
+
 namespace SecurityMicroservice.Domain.Entities;
 
-public class UserApplication
+public class UserApplication: BaseEntity
 {
     public Guid UserId { get; set; }
     public Guid ApplicationId { get; set; }

@@ -16,7 +16,7 @@ public interface IUserRepository
     Task<List<string>> GetUserPermissionsAsync(Guid userId);
     Task<List<string>> GetUserRolesAsync(Guid userId);
     Task<List<string>> GetUserApplicationScopesAsync(Guid userId);
-    Task<User> GetByTokenAsync(string token);
+    Task<User?> GetByTokenAsync(string token);
 }
 
 public class UserRepository : IUserRepository
@@ -39,7 +39,8 @@ public class UserRepository : IUserRepository
             .Include(u => u.UserPermissions)
                 .ThenInclude(up => up.Permission)
                     .ThenInclude(p => p.Option)
-                        .ThenInclude(o => o.Application)
+                        .ThenInclude(o => o.Module)
+                            .ThenInclude(m => m.Application)
             .FirstOrDefaultAsync(u => u.UserId == userId);
     }
 
@@ -54,7 +55,8 @@ public class UserRepository : IUserRepository
             .Include(u => u.UserPermissions)
                 .ThenInclude(up => up.Permission)
                     .ThenInclude(p => p.Option)
-                        .ThenInclude(o => o.Application)
+                        .ThenInclude(o => o.Module)
+                            .ThenInclude(m => m.Application)
             .FirstOrDefaultAsync(u => u.Username == username);
     }
 
@@ -107,9 +109,10 @@ public class UserRepository : IUserRepository
             .Where(up => up.UserId == userId)
             .Include(up => up.Permission)
                 .ThenInclude(p => p.Option)
-                    .ThenInclude(o => o.Application)
-            .Where(up => up.Permission.IsActive && up.Permission.Option.IsActive && up.Permission.Option.Application.IsActive)
-            .Select(up => $"{up.Permission.Option.Application.Code}:{up.Permission.Option.Name}:{up.Permission.ActionCode}")
+                    .ThenInclude(o => o.Module)
+                        .ThenInclude(m => m.Application)
+            .Where(up => up.Permission.IsActive && up.Permission.Option.IsActive && up.Permission.Option.Module.Application.IsActive)
+            .Select(up => $"{up.Permission.Option.Module.Application.Code}:{up.Permission.Option.Name}:{up.Permission.ActionCode}")
             .ToListAsync();
 
         var rolePermissions = await _context.UserRoles
@@ -117,10 +120,11 @@ public class UserRepository : IUserRepository
             .Include(ur => ur.Role)
                 .ThenInclude(r => r.Permissions)
                     .ThenInclude(p => p.Option)
-                        .ThenInclude(o => o.Application)
+                        .ThenInclude(o => o.Module)
+                            .ThenInclude(m => m.Application)
             .SelectMany(ur => ur.Role.Permissions)
-            .Where(p => p.IsActive && p.Option.IsActive && p.Option.Application.IsActive)
-            .Select(p => $"{p.Option.Application.Code}:{p.Option.Name}:{p.ActionCode}")
+            .Where(p => p.IsActive && p.Option.IsActive && p.Option.Module.Application.IsActive)
+            .Select(p => $"{p.Option.Module.Application.Code}:{p.Option.Name}:{p.ActionCode}")
             .ToListAsync();
 
         return permissions.Concat(rolePermissions).Distinct().ToList();
@@ -147,7 +151,7 @@ public class UserRepository : IUserRepository
             .ToListAsync();
     }
 
-    public async Task<User> GetByTokenAsync(string token)
+    public async Task<User?> GetByTokenAsync(string token)
     {
         User? user = await _context.Users
                     .FirstOrDefaultAsync(u => u.PasswordResetToken == token

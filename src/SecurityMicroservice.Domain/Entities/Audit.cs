@@ -1,6 +1,8 @@
+using SecurityMicroservice.Domain.Common;
+
 namespace SecurityMicroservice.Domain.Entities;
 
-public class Audit
+public class Audit: BaseEntity
 {
     public Guid AuditId { get; set; } = Guid.NewGuid();
     public string Entity { get; set; } = string.Empty;

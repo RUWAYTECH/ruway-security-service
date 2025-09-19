@@ -15,6 +15,7 @@ public class SecurityDbContext : DbContext
     public DbSet<UserApplication> UserApplications { get; set; }
     public DbSet<Role> Roles { get; set; }
     public DbSet<UserRole> UserRoles { get; set; }
+    public DbSet<Module> Modules { get; set; }
     public DbSet<Option> Options { get; set; }
     public DbSet<Permission> Permissions { get; set; }
     public DbSet<UserPermission> UserPermissions { get; set; }
@@ -30,6 +31,7 @@ public class SecurityDbContext : DbContext
         modelBuilder.ApplyConfiguration(new RoleConfiguration());
         modelBuilder.ApplyConfiguration(new UserRoleConfiguration());
         modelBuilder.ApplyConfiguration(new OptionConfiguration());
+        modelBuilder.ApplyConfiguration(new ModuleConfiguration());
         modelBuilder.ApplyConfiguration(new PermissionConfiguration());
         modelBuilder.ApplyConfiguration(new UserPermissionConfiguration());
         modelBuilder.ApplyConfiguration(new AuditConfiguration());
