@@ -6,7 +6,7 @@ using SecurityMicroservice.Shared.DTOs;
 namespace SecurityMicroservice.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/users")]
 [Authorize]
 public class UsersController : ControllerBase
 {

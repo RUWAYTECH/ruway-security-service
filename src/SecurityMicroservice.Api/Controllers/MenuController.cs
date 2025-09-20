@@ -7,7 +7,7 @@ using System.Security.Claims;
 namespace SecurityMicroservice.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/menus")]
 [Authorize]
 public class MenuController : ControllerBase
 {

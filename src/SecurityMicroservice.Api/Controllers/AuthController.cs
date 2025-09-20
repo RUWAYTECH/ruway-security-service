@@ -123,7 +123,7 @@ public class AuthController : ControllerBase
         throw new InvalidOperationException("The specified grant type is not supported.");
     }
 
-    [HttpPost("~/api/auth/forgot-password")]
+    [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
     {
         if (!ModelState.IsValid)
@@ -135,7 +135,7 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
-    [HttpPost("~/api/auth/reset-password")]
+    [HttpPost("reset-password")]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
     {
         if (!ModelState.IsValid)
