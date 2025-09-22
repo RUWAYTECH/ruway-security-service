@@ -2,8 +2,10 @@ namespace SecurityMicroservice.Shared.DTOs;
 
 public class MenuDto
 {
+    public string ApplicationUrl { get; set; } = string.Empty;
     public string ApplicationCode { get; set; } = string.Empty;
     public string ApplicationName { get; set; } = string.Empty;
+    public string ApplicationIcon { get; set; } = string.Empty;
     public List<ModuleDto> Modules { get; set; } = new();
 }
 

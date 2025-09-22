@@ -20,6 +20,7 @@ public static class SeedData
             ApplicationId = Guid.NewGuid(),
             Code = ApplicationCodes.Auditoria,
             Name = "Sistema de Auditoría",
+            Icon = "security",
             BaseUrl = "https://auditoria.company.com",
             IsActive = true,
             CreatedAt = DateTime.UtcNow
@@ -29,7 +30,8 @@ public static class SeedData
         {
             ApplicationId = Guid.NewGuid(),
             Code = ApplicationCodes.Memos,
-            Name = "Sistema de gestión y trazabilidad de documentos",
+            Name = "Trazabilidad de documentos",
+            Icon = "description",
             BaseUrl = "https://memos.company.com",
             IsActive = true,
             CreatedAt = DateTime.UtcNow
@@ -40,6 +42,7 @@ public static class SeedData
             ApplicationId = Guid.NewGuid(),
             Code = ApplicationCodes.Security,
             Name = "Sistema de Seguridad",
+            Icon = "shield",
             BaseUrl = "https://security.company.com",
             IsActive = true,
             CreatedAt = DateTime.UtcNow

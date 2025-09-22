@@ -50,6 +50,8 @@ public class MenuService : IMenuService
 
         var menuDto = new MenuDto
         {
+            ApplicationIcon = application.Icon,
+            ApplicationUrl = application.BaseUrl,
             ApplicationCode = application.Code,
             ApplicationName = application.Name,
             Modules = new List<ModuleDto>()
