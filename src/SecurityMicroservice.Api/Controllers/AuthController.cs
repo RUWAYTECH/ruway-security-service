@@ -380,6 +380,8 @@ public class AuthController : ControllerBase
             case "roles":
             case "permissions":
             case "employee_id":
+            case "first_name":
+            case "last_name":
                 yield return Destinations.AccessToken;
                 yield break;
 
