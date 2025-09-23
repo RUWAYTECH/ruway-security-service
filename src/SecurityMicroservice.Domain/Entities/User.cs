@@ -9,6 +9,11 @@ public class User: BaseEntity
     public string PasswordHash { get; set; } = string.Empty;
     public UserStatus Status { get; set; } = UserStatus.Active;
     public Guid? EmployeeId { get; set; } // Reference to master microservice
+    public string? FirstName { get; set; } // Reference to master microservice
+    public string? LastName { get; set; } // Reference to master microservice
+    public string? Email { get; set; } // Reference to master microservice
+    public string? PhoneNumber { get; set; } // Reference to master microservice
+    public DateTime? DateOfBirth { get; set; } // Reference to master microservice
     public DateTime? LastLoginAt { get; set; }
 
     public string? PasswordResetToken { get; set; }

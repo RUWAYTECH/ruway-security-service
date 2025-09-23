@@ -77,6 +77,29 @@ public class AuthController : ControllerBase
 
             return SignIn(new ClaimsPrincipal(identity), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
+        else if (request.IsClientCredentialsGrantType())
+        {
+            // Client Credentials flow - for machine-to-machine communication
+            var identity = new ClaimsIdentity(
+                authenticationType: TokenValidationParameters.DefaultAuthenticationType,
+                nameType: Claims.Name,
+                roleType: Claims.Role);
+
+            // Use the client_id as the subject for client credentials
+            identity.SetClaim(Claims.Subject, request.ClientId!)
+                   .SetClaim(Claims.Name, request.ClientId!);
+
+            // Set default scopes for client credentials
+            identity.SetScopes(new[] { "api" }.ToImmutableArray());
+
+            // For client credentials, we can set the client_id as resource
+            // This allows the client to access resources with its own identity
+            identity.SetResources(request.ClientId!);
+
+            identity.SetDestinations(GetDestinations);
+
+            return SignIn(new ClaimsPrincipal(identity), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+        }
         else if (request.IsRefreshTokenGrantType())
         {
             var result = await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
