@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
-using SecurityMicroservice.Application.Services;
 using SecurityMicroservice.Shared.DTOs;
 using System.Collections.Immutable;
 using System.Security.Claims;
@@ -66,6 +65,10 @@ public class AuthController : ControllerBase
             identity.SetClaim(Claims.Subject, user.UserId.ToString())
                     .SetClaim(Claims.Name, user.Username)
                     .SetClaim("employee_id", user.EmployeeId?.ToString())
+                    .SetClaim("first_name", user.FirstName)
+                    .SetClaim("last_name", user.LastName)
+                    .SetClaim("date_of_birth", user.DateOfBirth?.ToString("dd/MM/yyyy"))
+                    .SetClaim(Claims.Email, user.Email)
                     .SetClaims("roles", tokenResponse.Roles.ToImmutableArray())
                     .SetClaims("permissions", tokenResponse.Permissions.ToImmutableArray());
 
@@ -134,6 +137,10 @@ public class AuthController : ControllerBase
             // Update claims with fresh data
             var identity = new ClaimsIdentity(result.Principal!.Identity);
             identity.SetClaim("employee_id", user.EmployeeId?.ToString())
+                    .SetClaim("first_name", user.FirstName)
+                    .SetClaim("last_name", user.LastName)
+                    .SetClaim("date_of_birth", user.DateOfBirth?.ToString("yyyy-MM-dd"))
+                    .SetClaim(Claims.Email, user.Email)
                    .SetClaims("roles", tokenResponse.Roles.ToImmutableArray())
                    .SetClaims("permissions", tokenResponse.Permissions.ToImmutableArray());
 
