@@ -176,6 +176,7 @@ using (var scope = app.Services.CreateScope())
     await context.Database.MigrateAsync();
     await SeedData.InitializeAsync(context, passwordService);
     await SeedClients.InitializeAsync(scope.ServiceProvider);
+    await SeedAudit.InitializeAsync(scope.ServiceProvider);
 }
 
 app.Run();
