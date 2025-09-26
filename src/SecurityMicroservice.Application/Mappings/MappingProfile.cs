@@ -29,5 +29,6 @@ public class MappingProfile : Profile
 
         CreateMap<Option, OptionDto>()
             .ForMember(dest => dest.ApplicationCode, opt => opt.MapFrom(src => src.Module.Application.Code));
+        CreateMap<Permission, PermissionDto>();
     }
 }

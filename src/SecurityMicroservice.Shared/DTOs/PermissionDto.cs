@@ -15,16 +15,3 @@ public class PermissionDto
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
 }
-
-public class CreatePermissionRequest
-{
-    public Guid RoleId { get; set; }
-    public Guid OptionId { get; set; }
-    public string ActionCode { get; set; } = string.Empty;
-}
-
-public class UpdatePermissionRequest
-{
-    public string? ActionCode { get; set; }
-    public bool? IsActive { get; set; }
-}
