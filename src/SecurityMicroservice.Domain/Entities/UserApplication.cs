@@ -8,6 +8,8 @@ public class UserApplication: BaseEntity
     public Guid ApplicationId { get; set; }
     public bool IsActive { get; set; } = true;
     public DateTime AssignedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? RevokedAt { get; set; }
+    public string? Notes { get; set; } = string.Empty;
     
     // Navigation properties
     public User User { get; set; } = null!;
