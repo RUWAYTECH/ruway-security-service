@@ -20,5 +20,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SecurityMicroservice.Domain\SecurityMicroservice.Domain.csproj" />
+    <ProjectReference Include="..\SecurityMicroservice.Shared\SecurityMicroservice.Shared.csproj" />
   </ItemGroup>
 </Project>

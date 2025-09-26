@@ -23,8 +23,8 @@ public class RoleConfiguration : IEntityTypeConfiguration<Role>
         builder.Property(r => r.Description)
             .HasMaxLength(500);
         
-        builder.Property(r => r.Url)
-            .HasMaxLength(500);
+        //builder.Property(r => r.Url)
+        //    .HasMaxLength(500);
         
         builder.Property(r => r.IsActive)
             .IsRequired();

@@ -1,6 +1,7 @@
 using AutoMapper;
 using SecurityMicroservice.Domain.Entities;
 using SecurityMicroservice.Shared.DTOs;
+using SecurityMicroservice.Shared.Response.Permission;
 
 namespace SecurityMicroservice.Application.Mappings;
 
@@ -10,8 +11,6 @@ public class MappingProfile : Profile
     {
         CreateMap<User, UserDto>()
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
-            .ForMember(dest => dest.Applications, opt => opt.MapFrom(src => 
-                src.UserApplications.Where(ua => ua.IsActive).Select(ua => ua.Application)))
             .ForMember(dest => dest.Roles, opt => opt.MapFrom(src =>
                 src.UserRoles.Where(ur => ur.Role.IsActive).Select(ur => ur.Role)));
 
@@ -20,7 +19,7 @@ public class MappingProfile : Profile
         CreateMap<Role, RoleDto>()
             .ForMember(dest => dest.ApplicationCode, opt => opt.MapFrom(src => src.Application.Code));
 
-        CreateMap<Permission, PermissionDto>()
+        CreateMap<Permission, PermissionResponseDto>()
             .ForMember(dest => dest.OptionName, opt => opt.MapFrom(src => src.Option.Name))
             .ForMember(dest => dest.OptionRoute, opt => opt.MapFrom(src => src.Option.Route))
             .ForMember(dest => dest.HttpMethod, opt => opt.MapFrom(src => src.Option.HttpMethod))
@@ -29,6 +28,5 @@ public class MappingProfile : Profile
 
         CreateMap<Option, OptionDto>()
             .ForMember(dest => dest.ApplicationCode, opt => opt.MapFrom(src => src.Module.Application.Code));
-        CreateMap<Permission, PermissionDto>();
     }
 }

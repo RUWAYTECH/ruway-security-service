@@ -2,7 +2,10 @@ using AutoMapper;
 using SecurityMicroservice.Domain.Entities;
 using SecurityMicroservice.Infrastructure.Repositories;
 using SecurityMicroservice.Infrastructure.Services;
+using SecurityMicroservice.Shared.Common;
 using SecurityMicroservice.Shared.DTOs;
+using SecurityMicroservice.Shared.Request.User;
+using SecurityMicroservice.Shared.Response.Common;
 
 namespace SecurityMicroservice.Application.Services;
 
@@ -13,6 +16,7 @@ public interface IUserService
     Task<UserDto> CreateUserAsync(CreateUserRequest request);
     Task<UserDto?> UpdateUserAsync(Guid userId, UpdateUserRequest request);
     Task<bool> DeleteUserAsync(Guid userId);
+    Task<ResponseDto<PaginationResponseDto<UserDto>>> GetPaged(UserPaginationRequestDto requestDto);
 }
 
 public class UserService : IUserService
@@ -85,5 +89,46 @@ public class UserService : IUserService
 
         await _userRepository.DeleteAsync(userId);
         return true;
+    }
+
+    public async Task<ResponseDto<PaginationResponseDto<UserDto>>> GetPaged(UserPaginationRequestDto requestDto)
+    {
+        var response = ResponseDto.Create<PaginationResponseDto<UserDto>>();
+        try
+        {
+            System.Linq.Expressions.Expression<System.Func<User, bool>> filter = x => x.UserApplications.Any(a => a.Application.Code == requestDto.ApplicationCode);
+            if (!string.IsNullOrEmpty(requestDto.Filter))
+            {
+                var filterLower = requestDto.Filter.ToLower();
+
+                filter = x =>
+                    x.Username.ToLower().Contains(filterLower) ||
+                    x.FirstName.ToLower().Contains(filterLower) ||
+                    x.LastName.ToLower().Contains(filterLower);
+            }
+
+            Func<IQueryable<User>, IOrderedQueryable<User>> orderBy = q => q.OrderBy(x => x.CreatedAt);
+
+            var (items, totalRows) = await _userRepository.GetPagedAsync(
+                filter: filter,
+                orderBy: orderBy,
+                applicationCode: requestDto.ApplicationCode,
+                pageNumber: requestDto.PageNumber,
+                pageSize: requestDto.PageSize
+            );
+
+            response.Data = new PaginationResponseDto<UserDto>
+            {
+                Items = _mapper.Map<IEnumerable<UserDto>>(items),
+                TotalCount = totalRows,
+                PageNumber = requestDto.PageNumber,
+                PageSize = requestDto.PageSize
+            };
+        }
+        catch (Exception ex)
+        {
+            response = ResponseDto.Error<PaginationResponseDto<UserDto>>(ex.Message);
+        }
+        return response;
     }
 }

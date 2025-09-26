@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using SecurityMicroservice.Domain.Entities;
 using SecurityMicroservice.Infrastructure.Data;
+using SecurityMicroservice.Shared.Common;
+using System.Linq.Expressions;
 
 namespace SecurityMicroservice.Infrastructure.Repositories;
 
@@ -18,6 +20,13 @@ public interface IUserRepository
     Task<List<string>> GetUserRolesAsync(Guid userId);
     Task<List<string>> GetUserApplicationScopesAsync(Guid userId);
     Task<User?> GetByTokenAsync(string token);
+    Task<(List<User> Items, int TotalRows)> GetPagedAsync(
+            Expression<Func<User, bool>> filter = null,
+            Func<IQueryable<User>, IOrderedQueryable<User>> orderBy = null,
+            string applicationCode = "",
+            int pageNumber = 0,
+            int pageSize = 0
+        );
 }
 
 public class UserRepository : IUserRepository
@@ -193,5 +202,35 @@ public class UserRepository : IUserRepository
                         && u.PasswordResetTokenExpires > DateTime.UtcNow
                         && u.Status == UserStatus.Active);
         return user;
+    }
+
+    public async Task<(List<User> Items, int TotalRows)> GetPagedAsync(
+           Expression<Func<User, bool>> filter = null,
+           Func<IQueryable<User>, IOrderedQueryable<User>> orderBy = null,
+           string applicationCode = "",
+           int pageNumber = 0,
+           int pageSize = 0
+    )
+    {
+        IQueryable<User> query = _context.Users
+                .Include(u => u.UserRoles.Where(t => t.Role.Application.Code == applicationCode))
+                    .ThenInclude(ur => ur.Role)
+                    .ThenInclude(ap => ap.Application);
+
+
+        if (filter != null)
+            query = query.Where(filter);
+
+        var totalRows = await query.CountAsync();
+
+        if (orderBy != null)
+            query = orderBy(query);
+
+        if (pageNumber > 0 && pageSize > 0)
+            query = query.Skip((pageNumber - 1) * pageSize).Take(pageSize);
+
+        var items = await query.ToListAsync();
+
+        return (items, totalRows);
     }
 }

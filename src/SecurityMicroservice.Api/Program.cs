@@ -2,9 +2,11 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using OpenIddict.Server;
 using SecurityMicroservice.Api.Authorization;
+using SecurityMicroservice.Application.IServices;
 using SecurityMicroservice.Application.Mappings;
 using SecurityMicroservice.Application.Services;
 using SecurityMicroservice.Infrastructure.Data;
+using SecurityMicroservice.Infrastructure.IRepositories;
 using SecurityMicroservice.Infrastructure.Repositories;
 using SecurityMicroservice.Infrastructure.Services;
 using static OpenIddict.Abstractions.OpenIddictConstants;
@@ -77,12 +79,14 @@ builder.Services.AddOpenIddict()
 
 // Add repositories and services
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
 
 // Business services
 builder.Services.AddScoped<IPasswordService, PasswordService>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IMenuService, MenuService>();
+builder.Services.AddScoped<IPermissionService, PermissionService>();
 
 // Add AutoMapper
 var mapperConfig = new MapperConfiguration(cfg =>

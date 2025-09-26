@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SecurityMicroservice.Application.Services;
+using SecurityMicroservice.Shared.Common;
 using SecurityMicroservice.Shared.DTOs;
+using SecurityMicroservice.Shared.Request.User;
 
 namespace SecurityMicroservice.Api.Controllers;
 
@@ -18,9 +20,9 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<UserDto>>> GetUsers()
+    public async Task<ActionResult<PaginationResponseDto<UserDto>>> GetUsers([FromQuery] UserPaginationRequestDto paginationRequestDto)
     {
-        var users = await _userService.GetAllUsersAsync();
+        var users = await _userService.GetPaged(paginationRequestDto);
         return Ok(users);
     }
 
