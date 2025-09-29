@@ -29,7 +29,12 @@ namespace SecurityMicroservice.Application.Services
             var result = ResponseDto.Create<PermissionResponseDto>();
             try
             {
-                var entity = _mapper.Map<Permission>(requestDto);
+                var entity = new Permission
+                {
+                    RoleId = requestDto.RoleId,
+                    OptionId = requestDto.OptionId,
+                    ActionCode = requestDto.ActionCode
+                };
                 _permissionRepository.Insert(entity);
                 result.Data = _mapper.Map<PermissionResponseDto>(entity);
             }
@@ -83,7 +88,9 @@ namespace SecurityMicroservice.Application.Services
                     return result;
                 }
 
-                _mapper.Map(dto, permission);
+                permission.RoleId = dto.RoleId != Guid.Empty ? dto.RoleId : permission.RoleId;
+                permission.OptionId = dto.OptionId != Guid.Empty ? dto.OptionId : permission.OptionId;
+                permission.ActionCode = !string.IsNullOrWhiteSpace(dto.ActionCode) ? dto.ActionCode : permission.ActionCode;
 
                 _permissionRepository.Update(permission);
 

@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using SecurityMicroservice.Domain.Entities;
+using SecurityMicroservice.Shared.Request.Permission;
 
 namespace SecurityMicroservice.Application.Mappings
 {
@@ -8,6 +10,7 @@ namespace SecurityMicroservice.Application.Mappings
         {
             CreateMap<Shared.DTOs.CreateRoleRequest, Domain.Entities.Role>();
             CreateMap<Shared.DTOs.UpdateRoleRequest, Domain.Entities.Role>();
+            CreateMap<PermissionRequestDto, Permission>();
         }
     }
 }

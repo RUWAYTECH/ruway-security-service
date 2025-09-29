@@ -87,6 +87,7 @@ namespace SecurityMicroservice.Infrastructure.Repositories
         public virtual void Insert(TEntity entity)
         {
             DbSet.Add(entity);
+            Db.SaveChanges();
         }
 
         public virtual void Update(TEntity entityToUpdate)
@@ -95,6 +96,7 @@ namespace SecurityMicroservice.Infrastructure.Repositories
                 DbSet.Attach(entityToUpdate);
 
             Db.Entry(entityToUpdate).State = EntityState.Modified;
+            Db.SaveChanges();
         }
 
         public virtual void UpdatePartial(TEntity entityToUpdate, params string[] changedPropertyNames)
@@ -125,6 +127,7 @@ namespace SecurityMicroservice.Infrastructure.Repositories
         {
             TEntity entityToDelete = GetByKey(keyValues);
             Delete(entityToDelete);
+            Db.SaveChanges();
         }
 
         public virtual void Delete(TEntity entityToDelete)
@@ -134,6 +137,7 @@ namespace SecurityMicroservice.Infrastructure.Repositories
 
             Db.Entry(entityToDelete).State = EntityState.Deleted;
             DbSet.Remove(entityToDelete);
+            Db.SaveChanges();
         }
 
         public virtual TEntity FindByAltKey(params object[] keys)
