@@ -1,5 +1,6 @@
 using AutoMapper;
 using SecurityMicroservice.Domain.Entities;
+using SecurityMicroservice.Infrastructure.IRepositories;
 using SecurityMicroservice.Infrastructure.Repositories;
 using SecurityMicroservice.Shared.DTOs;
 

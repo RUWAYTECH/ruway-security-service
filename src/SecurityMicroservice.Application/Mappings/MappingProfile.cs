@@ -2,6 +2,7 @@ using AutoMapper;
 using SecurityMicroservice.Domain.Entities;
 using SecurityMicroservice.Shared.DTOs;
 using SecurityMicroservice.Shared.Response.Permission;
+using SecurityMicroservice.Shared.Response.User;
 
 namespace SecurityMicroservice.Application.Mappings;
 
@@ -9,7 +10,7 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
-        CreateMap<User, UserDto>()
+        CreateMap<User, UserResponseDto>()
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
             .ForMember(dest => dest.Roles, opt => opt.MapFrom(src =>
                 src.UserRoles.Where(ur => ur.Role.IsActive).Select(ur => ur.Role)));

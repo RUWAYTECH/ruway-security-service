@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SecurityMicroservice.Application.IServices;
 using SecurityMicroservice.Application.Services;
+using SecurityMicroservice.Domain.Entities;
 using SecurityMicroservice.Shared.Common;
 using SecurityMicroservice.Shared.DTOs;
 using SecurityMicroservice.Shared.Request.UserApplication;
@@ -75,17 +77,13 @@ public class UserApplicationsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<UserApplicationDto>> CreateUserApplication(CreateUserApplicationRequest request)
     {
-        try
+
+        var result = await _userApplicationService.CreateAsync(request);
+        if (result.IsValid)
         {
-            var userApplication = await _userApplicationService.CreateAsync(request);
-            return CreatedAtAction(nameof(GetUserApplication), 
-                new { userId = userApplication.UserId, applicationId = userApplication.ApplicationId }, 
-                userApplication);
+            return CreatedAtAction(nameof(CreateUserApplication), new { userId = result.Data.UserId, applicationId = result.Data.ApplicationId }, result.Data);
         }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(ex.Message);
-        }
+        return BadRequest(result);
     }
 
     /// <summary>
@@ -97,13 +95,16 @@ public class UserApplicationsController : ControllerBase
         Guid applicationId, 
         UpdateUserApplicationRequest request)
     {
-        var userApplication = await _userApplicationService.UpdateAsync(userId, applicationId, request);
-        if (userApplication == null)
+        var result = await _userApplicationService.UpdateAsync(userId, applicationId, request);
+        if (result.IsValid)
         {
-            return NotFound();
+            if (result.Data == null)
+            {
+                return NotFound();
+            }
+            return Ok(result.Data);
         }
-
-        return Ok(userApplication);
+        return BadRequest(result);
     }
 
     /// <summary>
@@ -113,11 +114,10 @@ public class UserApplicationsController : ControllerBase
     public async Task<IActionResult> DeleteUserApplication(Guid userId, Guid applicationId)
     {
         var result = await _userApplicationService.DeleteAsync(userId, applicationId);
-        if (!result)
+        if (result.IsValid)
         {
-            return NotFound();
+            return Ok(result);
         }
-
-        return NoContent();
+        return BadRequest(result);
     }
 }

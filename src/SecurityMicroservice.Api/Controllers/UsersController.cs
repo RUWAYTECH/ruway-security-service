@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SecurityMicroservice.Application.Services;
+using SecurityMicroservice.Application.IServices;
 using SecurityMicroservice.Shared.Common;
 using SecurityMicroservice.Shared.DTOs;
 using SecurityMicroservice.Shared.Request.User;
@@ -29,7 +29,7 @@ public class UsersController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<UserDto>> GetUser(Guid id)
     {
-        var user = await _userService.GetUserByIdAsync(id);
+        var user = await _userService.GetById(id);
         if (user == null)
         {
             return NotFound();
@@ -39,33 +39,39 @@ public class UsersController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<UserDto>> CreateUser(CreateUserRequest request)
+    public async Task<ActionResult<UserDto>> CreateUser(UserRequestDto request)
     {
-        var user = await _userService.CreateUserAsync(request);
-        return CreatedAtAction(nameof(GetUser), new { id = user.UserId }, user);
+        var result = await _userService.Create(request);
+        if (result.IsValid)
+        {
+            return CreatedAtAction(nameof(CreateUser), new { id = result.Data.UserId }, result.Data);
+        }
+        return BadRequest(result);
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<UserDto>> UpdateUser(Guid id, UpdateUserRequest request)
+    public async Task<ActionResult<UserDto>> UpdateUser(Guid id, UserRequestDto request)
     {
-        var user = await _userService.UpdateUserAsync(id, request);
-        if (user == null)
+        var result = await _userService.Update(id, request);
+        if (result.IsValid)
         {
-            return NotFound();
+            if (result.Data == null)
+            {
+                return NotFound();
+            }
+            return Ok(result.Data);
         }
-
-        return Ok(user);
+        return BadRequest(result);
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUser(Guid id)
     {
-        var result = await _userService.DeleteUserAsync(id);
-        if (!result)
+        var result = await _userService.Delete(id);
+        if (result.IsValid)
         {
-            return NotFound();
+            return Ok(result);
         }
-
-        return NoContent();
+        return BadRequest(result);
     }
 }

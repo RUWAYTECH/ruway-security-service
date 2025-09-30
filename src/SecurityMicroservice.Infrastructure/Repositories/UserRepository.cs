@@ -1,39 +1,15 @@
 using Microsoft.EntityFrameworkCore;
 using SecurityMicroservice.Domain.Entities;
 using SecurityMicroservice.Infrastructure.Data;
-using SecurityMicroservice.Shared.Common;
+using SecurityMicroservice.Infrastructure.IRepositories;
 using System.Linq.Expressions;
 
 namespace SecurityMicroservice.Infrastructure.Repositories;
 
-public interface IUserRepository
-{
-    Task<User?> GetByIdAsync(Guid userId);
-    Task<User?> GetByUsernameAsync(string username);
-    Task<List<User>> GetAllAsync();
-    Task<User> CreateAsync(User user);
-    Task<User> UpdateAsync(User user);
-    Task DeleteAsync(Guid userId);
-    Task<List<User>> GetByApplicationIdAsync(Guid applicationId);
-    Task<List<string>> GetUserPermissionsAsync(Guid userId);
-    Task<List<Permission>> GetUserPermissionEntitiesAsync(Guid userId);
-    Task<List<string>> GetUserRolesAsync(Guid userId);
-    Task<List<string>> GetUserApplicationScopesAsync(Guid userId);
-    Task<User?> GetByTokenAsync(string token);
-    Task<(List<User> Items, int TotalRows)> GetPagedAsync(
-            Expression<Func<User, bool>> filter = null,
-            Func<IQueryable<User>, IOrderedQueryable<User>> orderBy = null,
-            string applicationCode = "",
-            int pageNumber = 0,
-            int pageSize = 0
-        );
-}
-
-public class UserRepository : IUserRepository
+public class UserRepository : EFRepository<User>, IUserRepository
 {
     private readonly SecurityDbContext _context;
-
-    public UserRepository(SecurityDbContext context)
+    public UserRepository(SecurityDbContext context) : base(context)
     {
         _context = context;
     }
@@ -68,40 +44,6 @@ public class UserRepository : IUserRepository
                         .ThenInclude(o => o.Module)
                             .ThenInclude(m => m.Application)
             .FirstOrDefaultAsync(u => u.Username == username);
-    }
-
-    public async Task<List<User>> GetAllAsync()
-    {
-        return await _context.Users
-            .Include(u => u.UserApplications)
-                .ThenInclude(ua => ua.Application)
-            .Include(u => u.UserRoles)
-                .ThenInclude(ur => ur.Role)
-            .ToListAsync();
-    }
-
-    public async Task<User> CreateAsync(User user)
-    {
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
-        return user;
-    }
-
-    public async Task<User> UpdateAsync(User user)
-    {
-        _context.Users.Update(user);
-        await _context.SaveChangesAsync();
-        return user;
-    }
-
-    public async Task DeleteAsync(Guid userId)
-    {
-        var user = await _context.Users.FindAsync(userId);
-        if (user != null)
-        {
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-        }
     }
 
     public async Task<List<User>> GetByApplicationIdAsync(Guid applicationId)
@@ -204,7 +146,7 @@ public class UserRepository : IUserRepository
         return user;
     }
 
-    public async Task<(List<User> Items, int TotalRows)> GetPagedAsync(
+    public async Task<(List<User> Items, int TotalRows)> GetUserPagedAsync(
            Expression<Func<User, bool>> filter = null,
            Func<IQueryable<User>, IOrderedQueryable<User>> orderBy = null,
            string applicationCode = "",

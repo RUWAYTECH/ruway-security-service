@@ -1,6 +1,7 @@
 using AutoMapper;
+using SecurityMicroservice.Application.IServices;
 using SecurityMicroservice.Domain.Entities;
-using SecurityMicroservice.Infrastructure.Repositories;
+using SecurityMicroservice.Infrastructure.IRepositories;
 using SecurityMicroservice.Shared.Common;
 using SecurityMicroservice.Shared.DTOs;
 using SecurityMicroservice.Shared.Request.UserApplication;
@@ -8,18 +9,6 @@ using SecurityMicroservice.Shared.Response.Common;
 using System.Linq.Expressions;
 
 namespace SecurityMicroservice.Application.Services;
-
-public interface IUserApplicationService
-{
-    Task<List<UserApplicationDto>> GetAllAsync();
-    Task<UserApplicationDto?> GetByIdAsync(Guid userId, Guid applicationId);
-    Task<List<UserApplicationDto>> GetByUserIdAsync(Guid userId);
-    Task<List<UserApplicationDto>> GetByApplicationIdAsync(Guid applicationId);
-    Task<UserApplicationDto> CreateAsync(CreateUserApplicationRequest request);
-    Task<UserApplicationDto?> UpdateAsync(Guid userId, Guid applicationId, UpdateUserApplicationRequest request);
-    Task<bool> DeleteAsync(Guid userId, Guid applicationId);
-    Task<ResponseDto<PaginationResponseDto<UserApplicationDto>>> GetPagedAsync(UserApplicationPaginationRequestDto requestDto);
-}
 
 public class UserApplicationService : IUserApplicationService
 {
@@ -40,82 +29,135 @@ public class UserApplicationService : IUserApplicationService
         return _mapper.Map<List<UserApplicationDto>>(userApplications);
     }
 
-    public async Task<UserApplicationDto?> GetByIdAsync(Guid userId, Guid applicationId)
+    public async Task<ResponseDto<UserApplicationDto>> GetByIdAsync(Guid userId, Guid applicationId)
     {
-        var userApplication = await _userApplicationRepository.GetByIdAsync(userId, applicationId);
-        return userApplication != null ? _mapper.Map<UserApplicationDto>(userApplication) : null;
-    }
+        var result = ResponseDto.Create<UserApplicationDto>();
+        try
+        {
+            var userApplication = await _userApplicationRepository.GetFirstOrDefaultAsync(filter: x => x.UserId == userId && x.ApplicationId == applicationId);
+            result.Data = userApplication != null ? _mapper.Map<UserApplicationDto>(userApplication) : null;
+        } catch (Exception ex)
+        {
+            result = ResponseDto.Error<UserApplicationDto>(ex.Message);
+        }
+        return result;
+     }
 
     public async Task<List<UserApplicationDto>> GetByUserIdAsync(Guid userId)
     {
-        var userApplications = await _userApplicationRepository.GetByUserIdAsync(userId);
-        return _mapper.Map<List<UserApplicationDto>>(userApplications);
+        var result = ResponseDto.Create<List<UserApplicationDto>>();
+        try
+        {
+            var userApplications = await _userApplicationRepository.GetByUserIdAsync(userId); 
+            result.Data = _mapper.Map<List<UserApplicationDto>>(userApplications);
+        }
+        catch (Exception ex)
+        {
+            result = ResponseDto.Error<List<UserApplicationDto>>(ex.Message);
+        }
+        return result.Data;
     }
 
     public async Task<List<UserApplicationDto>> GetByApplicationIdAsync(Guid applicationId)
     {
-        var userApplications = await _userApplicationRepository.GetByApplicationIdAsync(applicationId);
-        return _mapper.Map<List<UserApplicationDto>>(userApplications);
-    }
-
-    public async Task<UserApplicationDto> CreateAsync(CreateUserApplicationRequest request)
-    {
-        // Verificar si ya existe la asignación
-        var exists = await _userApplicationRepository.ExistsAsync(request.UserId, request.ApplicationId);
-        if (exists)
+        var result = ResponseDto.Create<List<UserApplicationDto>>();
+        try
         {
-            throw new InvalidOperationException("El usuario ya tiene asignada esta aplicación.");
+            var userApplications = await _userApplicationRepository.GetByApplicationIdAsync(applicationId);
+            result.Data = _mapper.Map<List<UserApplicationDto>>(userApplications);
         }
-
-        var userApplication = new UserApplication
+        catch (Exception ex)
         {
-            UserId = request.UserId,
-            ApplicationId = request.ApplicationId,
-            IsActive = request.IsActive,
-            Notes = request.Notes,
-            AssignedAt = DateTime.UtcNow
-        };
-
-        var created = await _userApplicationRepository.CreateAsync(userApplication);
-        return _mapper.Map<UserApplicationDto>(created);
+            result = ResponseDto.Error<List<UserApplicationDto>>(ex.Message);
+        }
+        return result.Data;
     }
 
-    public async Task<UserApplicationDto?> UpdateAsync(Guid userId, Guid applicationId, UpdateUserApplicationRequest request)
+    public async Task<ResponseDto<UserApplicationDto>> CreateAsync(CreateUserApplicationRequest request)
     {
-        var userApplication = await _userApplicationRepository.GetByIdAsync(userId, applicationId);
-        if (userApplication == null) return null;
-
-        if (request.IsActive.HasValue)
+        var result = ResponseDto.Create<UserApplicationDto>();
+        try
         {
-            userApplication.IsActive = request.IsActive.Value;
-            if (!request.IsActive.Value)
+            var exists = await _userApplicationRepository.ExistsAsync(request.UserId, request.ApplicationId);
+            if (exists)
             {
-                userApplication.RevokedAt = DateTime.UtcNow;
+                throw new InvalidOperationException("El usuario ya tiene asignada esta aplicación.");
             }
-            else
+
+            var userApplication = new UserApplication
             {
-                userApplication.RevokedAt = null;
-            }
-        }
+                UserId = request.UserId,
+                ApplicationId = request.ApplicationId,
+                Notes = request.Notes,
+                AssignedAt = DateTime.UtcNow
+            };
 
-        if (!string.IsNullOrEmpty(request.Notes))
+            _userApplicationRepository.Insert(userApplication);
+            result.Data = _mapper.Map<UserApplicationDto>(userApplication);
+        }
+        catch (Exception ex)
         {
-            userApplication.Notes = request.Notes;
+            result = ResponseDto.Error<UserApplicationDto>(ex.Message);
         }
-
-        userApplication.UpdatedAt = DateTime.UtcNow;
-
-        var updated = await _userApplicationRepository.UpdateAsync(userApplication);
-        return _mapper.Map<UserApplicationDto>(updated);
+        return result;
     }
 
-    public async Task<bool> DeleteAsync(Guid userId, Guid applicationId)
+    public async Task<ResponseDto<UserApplicationDto>> UpdateAsync(Guid userId, Guid applicationId, UpdateUserApplicationRequest request)
     {
-        var userApplication = await _userApplicationRepository.GetByIdAsync(userId, applicationId);
-        if (userApplication == null) return false;
+        var result = ResponseDto.Create<UserApplicationDto>();
+        try
+        {
+            var userApplication = await _userApplicationRepository.GetFirstOrDefaultAsync(filter: x => x.UserId == userId && x.ApplicationId == applicationId);
+            if (userApplication == null) return null;
 
-        await _userApplicationRepository.DeleteAsync(userId, applicationId);
-        return true;
+            if (request.IsActive.HasValue)
+            {
+                userApplication.IsActive = request.IsActive.Value;
+                if (!request.IsActive.Value)
+                {
+                    userApplication.RevokedAt = DateTime.UtcNow;
+                }
+                else
+                {
+                    userApplication.RevokedAt = null;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(request.Notes))
+            {
+                userApplication.Notes = request.Notes;
+            }
+
+            userApplication.UpdatedAt = DateTime.UtcNow;
+
+            _userApplicationRepository.Update(userApplication);
+            result.Data = _mapper.Map<UserApplicationDto>(userApplication);
+        }
+        catch (Exception ex)
+        {
+            result = ResponseDto.Error<UserApplicationDto>(ex.Message);
+        }
+        return result;
+    }
+
+    public async Task<ResponseDto> DeleteAsync(Guid userId, Guid applicationId)
+    {
+        var result = ResponseDto.Create();
+        try
+        {
+            var userApplication = await _userApplicationRepository.GetFirstOrDefaultAsync(filter: x => x.UserId == userId && x.ApplicationId == applicationId);
+            if (userApplication == null)
+            {
+                result = ResponseDto.Error("No se pudo encontrar la asignación de aplicación para el usuario.");
+                return result;
+            }
+            _userApplicationRepository.Delete(userApplication);
+        }
+        catch (Exception ex)
+        {
+            result = ResponseDto.Error(ex.Message);
+        }
+        return result;
     }
 
     public async Task<ResponseDto<PaginationResponseDto<UserApplicationDto>>> GetPagedAsync(UserApplicationPaginationRequestDto requestDto)
@@ -178,7 +220,8 @@ public class UserApplicationService : IUserApplicationService
                 filter: filter,
                 orderBy: orderBy,
                 pageNumber: requestDto.PageNumber,
-                pageSize: requestDto.PageSize
+                pageSize: requestDto.PageSize,
+                includeProperties: [x => x.User, y=> y.Application]
             );
 
             response.Data = new PaginationResponseDto<UserApplicationDto>

@@ -1,23 +1,15 @@
 using AutoMapper;
+using SecurityMicroservice.Application.IServices;
 using SecurityMicroservice.Domain.Entities;
-using SecurityMicroservice.Infrastructure.Repositories;
+using SecurityMicroservice.Infrastructure.IRepositories;
 using SecurityMicroservice.Infrastructure.Services;
 using SecurityMicroservice.Shared.Common;
 using SecurityMicroservice.Shared.DTOs;
 using SecurityMicroservice.Shared.Request.User;
 using SecurityMicroservice.Shared.Response.Common;
+using SecurityMicroservice.Shared.Response.User;
 
 namespace SecurityMicroservice.Application.Services;
-
-public interface IUserService
-{
-    Task<List<UserDto>> GetAllUsersAsync();
-    Task<UserDto?> GetUserByIdAsync(Guid userId);
-    Task<UserDto> CreateUserAsync(CreateUserRequest request);
-    Task<UserDto?> UpdateUserAsync(Guid userId, UpdateUserRequest request);
-    Task<bool> DeleteUserAsync(Guid userId);
-    Task<ResponseDto<PaginationResponseDto<UserDto>>> GetPaged(UserPaginationRequestDto requestDto);
-}
 
 public class UserService : IUserService
 {
@@ -41,59 +33,86 @@ public class UserService : IUserService
         return _mapper.Map<List<UserDto>>(users);
     }
 
-    public async Task<UserDto?> GetUserByIdAsync(Guid userId)
+    public async Task<ResponseDto<UserResponseDto?>> GetById(Guid userId)
     {
-        var user = await _userRepository.GetByIdAsync(userId);
-        return user != null ? _mapper.Map<UserDto>(user) : null;
-    }
-
-    public async Task<UserDto> CreateUserAsync(CreateUserRequest request)
-    {
-        var user = new User
+        var result = ResponseDto.Create<UserResponseDto>();
+        try
         {
-            Username = request.Username,
-            PasswordHash = _passwordService.HashPassword(request.Password),
-            EmployeeId = request.EmployeeId,
-            Status = UserStatus.Active
-        };
-
-        var createdUser = await _userRepository.CreateAsync(user);
-        return _mapper.Map<UserDto>(createdUser);
+            var user = await _userRepository.GetFirstOrDefaultAsync(filter: x => x.UserId == userId);
+            result.Data = user != null ? _mapper.Map<UserResponseDto>(user) : null;
+        } catch (Exception ex)
+        {
+            result = ResponseDto.Error<UserResponseDto>(ex.Message);
+        }
+        return result;
     }
 
-    public async Task<UserDto?> UpdateUserAsync(Guid userId, UpdateUserRequest request)
+    public async Task<ResponseDto<UserResponseDto>> Create(UserRequestDto request)
     {
-        var user = await _userRepository.GetByIdAsync(userId);
-        if (user == null) return null;
+        var result = ResponseDto.Create<UserResponseDto>();
+        try
+        {
+            var user = new User
+            {
+                Username = request.Username,
+                PasswordHash = _passwordService.HashPassword(request.Password),
+                FirstName = request.FirstName ?? "",
+                LastName = request.LastName ?? "",
+                DateOfBirth = request.DateOfBirth ?? null,
+                Email = request.Email ?? "",
+                PhoneNumber = request.PhoneNumber ?? "",
+                EmployeeId = request.EmployeeId,
+                Status = UserStatus.Active
+            };
 
-        if (!string.IsNullOrEmpty(request.Username))
-            user.Username = request.Username;
-
-        if (!string.IsNullOrEmpty(request.Password))
-            user.PasswordHash = _passwordService.HashPassword(request.Password);
-
-        if (!string.IsNullOrEmpty(request.Status) && Enum.TryParse<UserStatus>(request.Status, out var status))
-            user.Status = status;
-
-        if (request.EmployeeId.HasValue)
-            user.EmployeeId = request.EmployeeId.Value;
-
-        var updatedUser = await _userRepository.UpdateAsync(user);
-        return _mapper.Map<UserDto>(updatedUser);
+            _userRepository.Insert(user);
+            result.Data = _mapper.Map<UserResponseDto>(user);
+        } catch (Exception ex)
+        {
+            result = ResponseDto.Error<UserResponseDto>(ex.Message);
+        }
+        return result;
     }
 
-    public async Task<bool> DeleteUserAsync(Guid userId)
+    public async Task<ResponseDto<UserResponseDto>> Update(object userId, UserRequestDto request)
     {
-        var user = await _userRepository.GetByIdAsync(userId);
-        if (user == null) return false;
+        var result = ResponseDto.Create<UserResponseDto>();
+        try
+        {
+            var entity = await _userRepository.GetByKeyAsync(userId);
+            if (entity == null)
+            {
+                result = ResponseDto.Error<UserResponseDto>("No se pudo encontrar el permiso");
+                return result;
+            }
 
-        await _userRepository.DeleteAsync(userId);
-        return true;
+            entity.Username = string.IsNullOrWhiteSpace(request.Username) ? entity.Username : request.Username;
+            entity.PasswordHash = string.IsNullOrWhiteSpace(request.Password) ? entity.PasswordHash : _passwordService.HashPassword(request.Password);
+            entity.FirstName = string.IsNullOrWhiteSpace(request.FirstName) ? entity.FirstName : request.FirstName;
+            entity.LastName = string.IsNullOrWhiteSpace(request.LastName) ? entity.LastName : request.LastName;
+            entity.DateOfBirth = request.DateOfBirth ?? entity.DateOfBirth;
+            entity.Email = string.IsNullOrWhiteSpace(request.Email) ? entity.Email : request.Email;
+            entity.PhoneNumber = string.IsNullOrWhiteSpace(request.PhoneNumber) ? entity.PhoneNumber : request.PhoneNumber;
+            entity.EmployeeId = request.EmployeeId != Guid.Empty ? request.EmployeeId : entity.EmployeeId;
+            entity.Status = !string.IsNullOrWhiteSpace(request.Status) && Enum.TryParse<UserStatus>(request.Status, true, out var parsedStatus)
+                            ? parsedStatus
+                            : entity.Status;
+
+
+            _userRepository.Update(entity);
+
+            result.Data = _mapper.Map<UserResponseDto>(entity);
+        }
+        catch (Exception ex)
+        {
+            result = ResponseDto.Error<UserResponseDto>(ex.Message);
+        }
+        return result;
     }
 
-    public async Task<ResponseDto<PaginationResponseDto<UserDto>>> GetPaged(UserPaginationRequestDto requestDto)
+    public async Task<ResponseDto<PaginationResponseDto<UserResponseDto>>> GetPaged(UserPaginationRequestDto requestDto)
     {
-        var response = ResponseDto.Create<PaginationResponseDto<UserDto>>();
+        var response = ResponseDto.Create<PaginationResponseDto<UserResponseDto>>();
         try
         {
             System.Linq.Expressions.Expression<System.Func<User, bool>> filter = x => x.UserApplications.Any(a => a.Application.Code == requestDto.ApplicationCode);
@@ -109,7 +128,7 @@ public class UserService : IUserService
 
             Func<IQueryable<User>, IOrderedQueryable<User>> orderBy = q => q.OrderBy(x => x.CreatedAt);
 
-            var (items, totalRows) = await _userRepository.GetPagedAsync(
+            var (items, totalRows) = await _userRepository.GetUserPagedAsync(
                 filter: filter,
                 orderBy: orderBy,
                 applicationCode: requestDto.ApplicationCode,
@@ -117,9 +136,9 @@ public class UserService : IUserService
                 pageSize: requestDto.PageSize
             );
 
-            response.Data = new PaginationResponseDto<UserDto>
+            response.Data = new PaginationResponseDto<UserResponseDto>
             {
-                Items = _mapper.Map<IEnumerable<UserDto>>(items),
+                Items = _mapper.Map<IEnumerable<UserResponseDto>>(items),
                 TotalCount = totalRows,
                 PageNumber = requestDto.PageNumber,
                 PageSize = requestDto.PageSize
@@ -127,8 +146,50 @@ public class UserService : IUserService
         }
         catch (Exception ex)
         {
-            response = ResponseDto.Error<PaginationResponseDto<UserDto>>(ex.Message);
+            response = ResponseDto.Error<PaginationResponseDto<UserResponseDto>>(ex.Message);
         }
         return response;
+    }
+
+    public async Task<ResponseDto<UserResponseDto>> GetById(object id)
+    {
+        var result = ResponseDto.Create<UserResponseDto>();
+        try
+        {
+            var entity = await _userRepository.GetFirstOrDefaultAsync(filter: x => x.UserId == (Guid)id);
+            if (entity == null)
+            {
+                result = ResponseDto.Error<UserResponseDto>("No se pudo encontrar el permiso");
+                return result;
+            }
+            result.Data = _mapper.Map<UserResponseDto>(entity);
+
+        }
+        catch (Exception ex)
+        {
+            result = ResponseDto.Error<UserResponseDto>(ex.Message);
+        }
+        return result;
+    }
+
+    public async Task<ResponseDto> Delete(object id)
+    {
+        var result = ResponseDto.Create();
+        try
+        {
+            var entity = await _userRepository.GetFirstOrDefaultAsync(filter: x => x.UserId == (Guid)id);
+            if (entity == null)
+            {
+                result = ResponseDto.Error("No se pudo encontrar el permiso");
+                return result;
+            }
+            entity.Status = UserStatus.Inactive;
+            _userRepository.Update(entity);
+        }
+        catch (Exception ex)
+        {
+            result = ResponseDto.Error(ex.Message);
+        }
+        return result;
     }
 }

@@ -1,6 +1,7 @@
 using AutoMapper;
+using SecurityMicroservice.Application.IServices;
 using SecurityMicroservice.Domain.Entities;
-using SecurityMicroservice.Infrastructure.Repositories;
+using SecurityMicroservice.Infrastructure.IRepositories;
 using SecurityMicroservice.Shared.Common;
 using SecurityMicroservice.Shared.DTOs;
 using SecurityMicroservice.Shared.Request.UserRole;
@@ -9,17 +10,6 @@ using System.Linq.Expressions;
 
 namespace SecurityMicroservice.Application.Services;
 
-public interface IUserRoleService
-{
-    Task<List<UserRoleDto>> GetAllAsync();
-    Task<UserRoleDto?> GetByIdAsync(Guid userId, Guid roleId);
-    Task<List<UserRoleDto>> GetByUserIdAsync(Guid userId);
-    Task<List<UserRoleDto>> GetByRoleIdAsync(Guid roleId);
-    Task<UserRoleDto> CreateAsync(CreateUserRoleRequest request);
-    Task<UserRoleDto?> UpdateAsync(Guid userId, Guid roleId, UpdateUserRoleRequest request);
-    Task<bool> DeleteAsync(Guid userId, Guid roleId);
-    Task<ResponseDto<PaginationResponseDto<UserRoleDto>>> GetPagedAsync(UserRolePaginationRequestDto requestDto);
-}
 
 public class UserRoleService : IUserRoleService
 {
@@ -36,77 +26,142 @@ public class UserRoleService : IUserRoleService
 
     public async Task<List<UserRoleDto>> GetAllAsync()
     {
-        var userRoles = await _userRoleRepository.GetAllAsync();
-        return _mapper.Map<List<UserRoleDto>>(userRoles);
+        var result = ResponseDto.Create<List<UserRoleDto>>();
+        try
+        {
+            var userRoles = await _userRoleRepository.GetAllAsync();
+            return _mapper.Map<List<UserRoleDto>>(userRoles);
+        }
+        catch (Exception ex)
+        {
+            result = ResponseDto.Error<List<UserRoleDto>>(ex.Message);
+        }
+        return result.Data;
     }
 
-    public async Task<UserRoleDto?> GetByIdAsync(Guid userId, Guid roleId)
+    public async Task<ResponseDto<UserRoleDto>> GetByIdAsync(Guid userId, Guid roleId)
     {
-        var userRole = await _userRoleRepository.GetByIdAsync(userId, roleId);
-        return userRole != null ? _mapper.Map<UserRoleDto>(userRole) : null;
+        var result = ResponseDto.Create<UserRoleDto>();
+        try
+        {
+            var userRole = await _userRoleRepository.GetFirstOrDefaultAsync(filter: x => x.UserId == userId && x.RoleId == roleId, includeProperties: [y => y.User, r => r.Role]);
+            result.Data = userRole != null ? _mapper.Map<UserRoleDto>(userRole) : null;
+        }
+        catch (Exception ex)
+        {
+            result = ResponseDto.Error<UserRoleDto>(ex.Message);
+        }
+        return result;
     }
 
     public async Task<List<UserRoleDto>> GetByUserIdAsync(Guid userId)
     {
-        var userRoles = await _userRoleRepository.GetByUserIdAsync(userId);
-        return _mapper.Map<List<UserRoleDto>>(userRoles);
+        var result = ResponseDto.Create<List<UserRoleDto>>();
+        try
+        {
+            var userRoles = await _userRoleRepository.GetByUserIdAsync(userId);
+            result.Data = _mapper.Map<List<UserRoleDto>>(userRoles);
+        }
+        catch (Exception ex)
+        {
+            result = ResponseDto.Error<List<UserRoleDto>>(ex.Message);
+        }
+        return result.Data;
     }
 
     public async Task<List<UserRoleDto>> GetByRoleIdAsync(Guid roleId)
     {
-        var userRoles = await _userRoleRepository.GetByRoleIdAsync(roleId);
-        return _mapper.Map<List<UserRoleDto>>(userRoles);
+        var result = ResponseDto.Create<List<UserRoleDto>>();
+        try
+        {
+            var userRoles = await _userRoleRepository.GetByRoleIdAsync(roleId);
+            result.Data = _mapper.Map<List<UserRoleDto>>(userRoles);
+        }
+        catch (Exception ex)
+        {
+            result = ResponseDto.Error<List<UserRoleDto>>(ex.Message);
+        }
+        return result.Data;
     }
 
-    public async Task<UserRoleDto> CreateAsync(CreateUserRoleRequest request)
+    public async Task<ResponseDto<UserRoleDto>> CreateAsync(CreateUserRoleRequest request)
     {
-        // Verificar si ya existe la asignación
-        var exists = await _userRoleRepository.ExistsAsync(request.UserId, request.RoleId);
-        if (exists)
+        var result = ResponseDto.Create<UserRoleDto>();
+        try
         {
-            throw new InvalidOperationException("El usuario ya tiene asignado este rol.");
+            var exists = await _userRoleRepository.ExistsAsync(request.UserId, request.RoleId);
+            if (exists)
+            {
+                throw new InvalidOperationException("El usuario ya tiene asignado este rol.");
+            }
+
+            var userRole = new UserRole
+            {
+                UserId = request.UserId,
+                RoleId = request.RoleId,
+                Notes = request.Notes,
+                AssignedAt = DateTime.UtcNow
+            };
+
+            _userRoleRepository.Insert(userRole);
+            result.Data = _mapper.Map<UserRoleDto>(userRole);
         }
-
-        var userRole = new UserRole
+        catch (Exception ex)
         {
-            UserId = request.UserId,
-            RoleId = request.RoleId,
-            Notes = request.Notes,
-            AssignedAt = DateTime.UtcNow
-        };
-
-        var created = await _userRoleRepository.CreateAsync(userRole);
-        return _mapper.Map<UserRoleDto>(created);
+            result = ResponseDto.Error<UserRoleDto>(ex.Message);
+        }
+        return result;
     }
 
-    public async Task<UserRoleDto?> UpdateAsync(Guid userId, Guid roleId, UpdateUserRoleRequest request)
+    public async Task<ResponseDto<UserRoleDto>> UpdateAsync(Guid userId, Guid roleId, UpdateUserRoleRequest request)
     {
-        var userRole = await _userRoleRepository.GetByIdAsync(userId, roleId);
-        if (userRole == null) return null;
-
-        if (!string.IsNullOrEmpty(request.Notes))
+        var result = ResponseDto.Create<UserRoleDto>();
+        try
         {
-            userRole.Notes = request.Notes;
-        }
+            var userRole = await _userRoleRepository.GetFirstOrDefaultAsync(filter: x => x.UserId == userId && x.RoleId == roleId, includeProperties: [y => y.User, r => r.Role]);
+            if (userRole == null) return null;
 
-        if (request.RevokedAt.HasValue)
+            if (!string.IsNullOrEmpty(request.Notes))
+            {
+                userRole.Notes = request.Notes;
+            }
+
+            if (request.RevokedAt.HasValue)
+            {
+                userRole.RevokedAt = request.RevokedAt;
+            }
+
+            userRole.UpdatedAt = DateTime.UtcNow;
+
+            _userRoleRepository.Update(userRole);
+            result.Data = _mapper.Map<UserRoleDto>(userRole);
+        }
+        catch (Exception ex)
         {
-            userRole.RevokedAt = request.RevokedAt;
+            result = ResponseDto.Error<UserRoleDto>(ex.Message);
         }
-
-        userRole.UpdatedAt = DateTime.UtcNow;
-
-        var updated = await _userRoleRepository.UpdateAsync(userRole);
-        return _mapper.Map<UserRoleDto>(updated);
+        return result;
     }
 
-    public async Task<bool> DeleteAsync(Guid userId, Guid roleId)
+    public async Task<ResponseDto> DeleteAsync(Guid userId, Guid roleId)
     {
-        var userRole = await _userRoleRepository.GetByIdAsync(userId, roleId);
-        if (userRole == null) return false;
+        var result = ResponseDto.Create();
+        try
+        {
+            var userRole = await _userRoleRepository.GetFirstOrDefaultAsync(filter: x => x.UserId == userId && x.RoleId == roleId, includeProperties: [y => y.User, r => r.Role]);
+            if (userRole == null)
+            {
+                result = ResponseDto.Error("No se pudo encontrar la asignación de rol para el usuario.");
+                return result;
+            }
 
-        await _userRoleRepository.DeleteAsync(userId, roleId);
-        return true;
+            _userRoleRepository.Delete(userId, roleId);
+        }
+        catch (Exception ex)
+        {
+            result = ResponseDto.Error(ex.Message);
+        }
+        return result;
     }
 
     public async Task<ResponseDto<PaginationResponseDto<UserRoleDto>>> GetPagedAsync(UserRolePaginationRequestDto requestDto)
@@ -180,7 +235,8 @@ public class UserRoleService : IUserRoleService
                 filter: filter,
                 orderBy: orderBy,
                 pageNumber: requestDto.PageNumber,
-                pageSize: requestDto.PageSize
+                pageSize: requestDto.PageSize,
+                includeProperties: [x => x.Role, y => y.User]
             );
 
             response.Data = new PaginationResponseDto<UserRoleDto>
@@ -188,7 +244,7 @@ public class UserRoleService : IUserRoleService
                 Items = _mapper.Map<IEnumerable<UserRoleDto>>(items),
                 TotalCount = totalRows,
                 PageNumber = requestDto.PageNumber,
-                PageSize = requestDto.PageSize
+                PageSize = requestDto.PageSize,
             };
         }
         catch (Exception ex)

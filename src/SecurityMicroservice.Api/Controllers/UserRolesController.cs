@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SecurityMicroservice.Application.IServices;
 using SecurityMicroservice.Application.Services;
 using SecurityMicroservice.Shared.Common;
 using SecurityMicroservice.Shared.DTOs;
@@ -79,7 +80,7 @@ public class UserRolesController : ControllerBase
         {
             var userRole = await _userRoleService.CreateAsync(request);
             return CreatedAtAction(nameof(GetUserRole), 
-                new { userId = userRole.UserId, roleId = userRole.RoleId }, 
+                new { userId = userRole.Data.UserId, roleId = userRole.Data.RoleId }, 
                 userRole);
         }
         catch (InvalidOperationException ex)
@@ -113,11 +114,10 @@ public class UserRolesController : ControllerBase
     public async Task<IActionResult> DeleteUserRole(Guid userId, Guid roleId)
     {
         var result = await _userRoleService.DeleteAsync(userId, roleId);
-        if (!result)
+        if (result.IsValid)
         {
-            return NotFound();
+            return Ok(result);
         }
-
-        return NoContent();
+        return BadRequest(result);
     }
 }

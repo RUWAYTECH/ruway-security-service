@@ -1,4 +1,5 @@
 using SecurityMicroservice.Domain.Entities;
+using SecurityMicroservice.Infrastructure.IRepositories;
 using SecurityMicroservice.Infrastructure.Repositories;
 using SecurityMicroservice.Infrastructure.Services;
 using SecurityMicroservice.Shared.DTOs;
@@ -66,7 +67,7 @@ public class AuthenticationService : IAuthenticationService
         if (user != null)
         {
             user.LastLoginAt = DateTime.UtcNow;
-            await _userRepository.UpdateAsync(user);
+            _userRepository.Update(user);
         }
     }
 
@@ -86,7 +87,7 @@ public class AuthenticationService : IAuthenticationService
           user.PasswordResetToken = _passwordService.GenerateRandomToken();
             user.PasswordResetTokenExpires = DateTime.UtcNow.AddHours(1);
 
-            await _userRepository.UpdateAsync(user);
+            _userRepository.Update(user);
 
         // For now, just return success message
         return new ForgotPasswordResponse
@@ -113,7 +114,7 @@ public class AuthenticationService : IAuthenticationService
             user.PasswordResetToken = null;
             user.PasswordResetTokenExpires = null;
 
-            await _userRepository.UpdateAsync(user);
+            _userRepository.Update(user);
 
             //  await _auditService.LogAsync("User", AuditAction.PasswordChange, user.Id);
 
