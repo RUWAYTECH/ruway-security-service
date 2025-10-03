@@ -756,8 +756,5 @@ public static class SeedData
             userMemoRole);
 
         await context.SaveChangesAsync();
-
-        // Inicializar seeds específicos de aplicaciones
-        await AuditoriaSeedData.InitializeAsync(context);
     }
 }
