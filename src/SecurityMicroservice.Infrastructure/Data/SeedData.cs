@@ -162,18 +162,7 @@ public static class SeedData
             memoSysAdminRole,
             memoJefaturaRole);
 
-        // Create modules
-        var auditoriaExpedientesModule = new Module
-        {
-            ModuleId = Guid.NewGuid(),
-            Code = "M0001",
-            ApplicationId = auditoriaApp.ApplicationId,
-            Name = "EXPEDIENTES",
-            Description = "Módulo de gestión de expedientes",
-            Icon = "fa-folder",
-            Order = 1,
-            CreatedAt = DateTime.UtcNow
-        };
+       
 
         // Modules for Sistema de gestión y trazabilidad de documentos
         var memosInicioModule = new Module
@@ -213,38 +202,11 @@ public static class SeedData
         };
 
         await context.Modules.AddRangeAsync(
-            auditoriaExpedientesModule, 
             memosInicioModule, 
             memosTrazabilidadModule, 
             memosAdministracionModule);
 
-        // Create options for Auditoria
-        var auditoriaExpedientesOption = new Option
-        {
-            OptionId = Guid.NewGuid(),
-            ModuleId = auditoriaExpedientesModule.ModuleId,
-            Code = "EXPEDIENTES",
-            Name = "EXPEDIENTES",
-            Icon = "fa-search",
-            Route = "/api/expedientes",
-            HttpMethod = "GET",
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        var auditoriaExpedientesPostOption = new Option
-        {
-            OptionId = Guid.NewGuid(),
-            ModuleId = auditoriaExpedientesModule.ModuleId,
-            Code = "EXPEDIENTES",
-            Name = "EXPEDIENTES",
-            Icon = "fa-plus",
-            Route = "/api/expedientes",
-            HttpMethod = "POST",
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow
-        };
-
+       
         // Create options for Memos - Inicio Module
         var memosDashboardOption = new Option
         {
@@ -405,8 +367,6 @@ public static class SeedData
         };
 
         await context.Options.AddRangeAsync(
-            auditoriaExpedientesOption,
-            auditoriaExpedientesPostOption,
             memosDashboardOption,
             memosMemorandumOption,
             memosBandejaOption,
@@ -420,27 +380,7 @@ public static class SeedData
             memosTemplateOption,
             memosSecuenciaOption);
 
-        // Create permissions
-        var auditorPermissionRead = new Permission
-        {
-            PermissionId = Guid.NewGuid(),
-            RoleId = auditorAdminRole.RoleId,
-            OptionId = auditoriaExpedientesOption.OptionId,
-            ActionCode = ActionCodes.Read,
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        var auditorPermissionCreate = new Permission
-        {
-            PermissionId = Guid.NewGuid(),
-            RoleId = auditorAdminRole.RoleId,
-            OptionId = auditoriaExpedientesPostOption.OptionId,
-            ActionCode = ActionCodes.Create,
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow
-        };
-
+       
         // Permisos para SYSADMIN (acceso completo)
         var sysAdminPermissionDashboard = new Permission
         {
@@ -709,8 +649,6 @@ public static class SeedData
         };
 
         await context.Permissions.AddRangeAsync(
-            auditorPermissionRead,
-            auditorPermissionCreate,
             // SYSADMIN - Acceso completo
             sysAdminPermissionDashboard,
             sysAdminPermissionMemorandum,
@@ -818,5 +756,8 @@ public static class SeedData
             userMemoRole);
 
         await context.SaveChangesAsync();
+
+        // Inicializar seeds específicos de aplicaciones
+        await AuditoriaSeedData.InitializeAsync(context);
     }
 }
