@@ -470,7 +470,7 @@ Dockerfile.dev
 docker-compose.override.yml
 
 # Entity Framework
-Migrations/
+#Migrations/
 
 # JWT Keys
 jwt-keys/
