@@ -1,4 +1,5 @@
 using AutoMapper;
+using Ruway.Events.Command.Interfaces.Events;
 using SecurityMicroservice.Application.IServices;
 using SecurityMicroservice.Domain.Entities;
 using SecurityMicroservice.Infrastructure.IRepositories;
@@ -67,7 +68,8 @@ public class UserService : IUserService
 
             _userRepository.Insert(user);
             result.Data = _mapper.Map<UserResponseDto>(user);
-        } catch (Exception ex)
+        }
+        catch (Exception ex)
         {
             result = ResponseDto.Error<UserResponseDto>(ex.Message);
         }

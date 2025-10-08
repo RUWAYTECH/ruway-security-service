@@ -1,4 +1,5 @@
 using AutoMapper;
+using Ruway.Events.Command.Interfaces.Events;
 using SecurityMicroservice.Application.IServices;
 using SecurityMicroservice.Domain.Entities;
 using SecurityMicroservice.Infrastructure.IRepositories;
@@ -14,13 +15,24 @@ public class UserApplicationService : IUserApplicationService
 {
     private readonly IUserApplicationRepository _userApplicationRepository;
     private readonly IMapper _mapper;
+    private readonly IEventPublisher _eventPublisher;
+    private readonly IUserRepository _userRepository;
+
+    private readonly IApplicationRepository _applicationRepository;
+
 
     public UserApplicationService(
         IUserApplicationRepository userApplicationRepository,
-        IMapper mapper)
+        IMapper mapper,
+        IEventPublisher eventPublisher,
+        IUserRepository userRepository,
+        IApplicationRepository applicationRepository)
     {
         _userApplicationRepository = userApplicationRepository;
         _mapper = mapper;
+        _eventPublisher = eventPublisher;
+        _userRepository = userRepository;
+        _applicationRepository = applicationRepository;
     }
 
     public async Task<List<UserApplicationDto>> GetAllAsync()
@@ -94,6 +106,24 @@ public class UserApplicationService : IUserApplicationService
 
             _userApplicationRepository.Insert(userApplication);
             result.Data = _mapper.Map<UserApplicationDto>(userApplication);
+            
+
+            var user = await _userRepository.GetFirstOrDefaultAsync(filter: x => x.UserId == request.UserId);
+            var application = await _applicationRepository.GetFirstOrDefaultAsync(filter: x => x.ApplicationId == request.ApplicationId && x.IsActive);
+
+            var userUpdatedEvent = new UserUpdatedEvent(
+                user.UserId,
+                user.EmployeeId.Value,
+                user.Username,
+                user.FirstName ?? "",
+                user.LastName ?? "",
+                user.Email ?? "",
+                ApplicationCode: application.Code ?? ""
+                );
+
+            await _eventPublisher.PublishAsync(userUpdatedEvent);
+
+
         }
         catch (Exception ex)
         {

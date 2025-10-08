@@ -9,7 +9,7 @@ using SecurityMicroservice.Infrastructure.Data;
 using SecurityMicroservice.Infrastructure.IRepositories;
 using SecurityMicroservice.Infrastructure.Repositories;
 using SecurityMicroservice.Infrastructure.Services;
-using static OpenIddict.Abstractions.OpenIddictConstants;
+using Ruway.Events.Command.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -83,6 +83,7 @@ builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
 builder.Services.AddScoped<IUserApplicationRepository, UserApplicationRepository>();
 builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
 builder.Services.AddScoped<IUserPermissionRepository, UserPermissionRepository>();
+builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
 
 // Business services
 builder.Services.AddScoped<IPasswordService, PasswordService>();
@@ -93,6 +94,7 @@ builder.Services.AddScoped<IPermissionService, PermissionService>();
 builder.Services.AddScoped<IUserApplicationService, UserApplicationService>();
 builder.Services.AddScoped<IUserRoleService, UserRoleService>();
 builder.Services.AddScoped<IUserPermissionService, UserPermissionService>();
+
 
 // Add AutoMapper
 var mapperConfig = new MapperConfiguration(cfg =>
@@ -150,6 +152,9 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader();
     });
 });
+
+
+ builder.Services.AddEventPublisher(builder.Configuration);
 
 var app = builder.Build();
 
