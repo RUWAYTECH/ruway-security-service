@@ -84,6 +84,7 @@ builder.Services.AddScoped<IUserApplicationRepository, UserApplicationRepository
 builder.Services.AddScoped<IUserRoleRepository, UserRoleRepository>();
 builder.Services.AddScoped<IUserPermissionRepository, UserPermissionRepository>();
 builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 
 // Business services
 builder.Services.AddScoped<IPasswordService, PasswordService>();

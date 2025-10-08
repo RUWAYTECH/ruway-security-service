@@ -48,19 +48,20 @@ public class UserApplicationService : IUserApplicationService
         {
             var userApplication = await _userApplicationRepository.GetFirstOrDefaultAsync(filter: x => x.UserId == userId && x.ApplicationId == applicationId);
             result.Data = userApplication != null ? _mapper.Map<UserApplicationDto>(userApplication) : null;
-        } catch (Exception ex)
+        }
+        catch (Exception ex)
         {
             result = ResponseDto.Error<UserApplicationDto>(ex.Message);
         }
         return result;
-     }
+    }
 
     public async Task<List<UserApplicationDto>> GetByUserIdAsync(Guid userId)
     {
         var result = ResponseDto.Create<List<UserApplicationDto>>();
         try
         {
-            var userApplications = await _userApplicationRepository.GetByUserIdAsync(userId); 
+            var userApplications = await _userApplicationRepository.GetByUserIdAsync(userId);
             result.Data = _mapper.Map<List<UserApplicationDto>>(userApplications);
         }
         catch (Exception ex)
@@ -106,22 +107,12 @@ public class UserApplicationService : IUserApplicationService
 
             _userApplicationRepository.Insert(userApplication);
             result.Data = _mapper.Map<UserApplicationDto>(userApplication);
-            
+
 
             var user = await _userRepository.GetFirstOrDefaultAsync(filter: x => x.UserId == request.UserId);
             var application = await _applicationRepository.GetFirstOrDefaultAsync(filter: x => x.ApplicationId == request.ApplicationId && x.IsActive);
 
-            var userUpdatedEvent = new UserUpdatedEvent(
-                user.UserId,
-                user.EmployeeId.Value,
-                user.Username,
-                user.FirstName ?? "",
-                user.LastName ?? "",
-                user.Email ?? "",
-                ApplicationCode: application.Code ?? ""
-                );
-
-            await _eventPublisher.PublishAsync(userUpdatedEvent);
+            await PublishEventsAsync(user.UserId, application.ApplicationId);
 
 
         }
@@ -162,6 +153,8 @@ public class UserApplicationService : IUserApplicationService
 
             _userApplicationRepository.Update(userApplication);
             result.Data = _mapper.Map<UserApplicationDto>(userApplication);
+
+            await PublishEventsAsync(userId, applicationId);
         }
         catch (Exception ex)
         {
@@ -170,6 +163,23 @@ public class UserApplicationService : IUserApplicationService
         return result;
     }
 
+    private async Task PublishEventsAsync(Guid userId, Guid applicationId)
+    {
+        var user = await _userRepository.GetFirstOrDefaultAsync(filter: x => x.UserId == userId);
+        var application = await _applicationRepository.GetFirstOrDefaultAsync(filter: x => x.ApplicationId == applicationId && x.IsActive);
+
+        var userUpdatedEvent = new UserUpdatedEvent(
+            user.UserId,
+            user.EmployeeId.Value,
+            user.Username,
+            user.FirstName ?? "",
+            user.LastName ?? "",
+            user.Email ?? "",
+            ApplicationCode: application.Code ?? ""
+            );
+
+        await _eventPublisher.PublishAsync(userUpdatedEvent);
+    }
     public async Task<ResponseDto> DeleteAsync(Guid userId, Guid applicationId)
     {
         var result = ResponseDto.Create();
@@ -181,7 +191,18 @@ public class UserApplicationService : IUserApplicationService
                 result = ResponseDto.Error("No se pudo encontrar la asignación de aplicación para el usuario.");
                 return result;
             }
-            _userApplicationRepository.Delete(userApplication);
+            var application = await _applicationRepository.GetFirstOrDefaultAsync(filter: x => x.ApplicationId == applicationId && x.IsActive);
+
+            userApplication.UpdatedAt = DateTime.UtcNow;
+            userApplication.IsActive = false;
+            userApplication.RevokedAt = DateTime.UtcNow;
+            _userApplicationRepository.Update(userApplication);
+            var userUpdatedEvent = new UserDeletedEvent(
+                UserId: userId,
+                ApplicationCode: application.Code ?? ""
+                );
+
+            await _eventPublisher.PublishAsync(userUpdatedEvent);
         }
         catch (Exception ex)
         {
@@ -205,7 +226,7 @@ public class UserApplicationService : IUserApplicationService
             if (requestDto.ApplicationId.HasValue)
             {
                 var applicationFilter = new Func<Expression<Func<UserApplication, bool>>, Expression<Func<UserApplication, bool>>>(
-                    existing => existing == null 
+                    existing => existing == null
                         ? ua => ua.ApplicationId == requestDto.ApplicationId.Value
                         : ua => existing.Compile()(ua) && ua.ApplicationId == requestDto.ApplicationId.Value);
                 filter = applicationFilter(filter);
@@ -214,7 +235,7 @@ public class UserApplicationService : IUserApplicationService
             if (!string.IsNullOrEmpty(requestDto.ApplicationCode))
             {
                 var appCodeFilter = new Func<Expression<Func<UserApplication, bool>>, Expression<Func<UserApplication, bool>>>(
-                    existing => existing == null 
+                    existing => existing == null
                         ? ua => ua.Application.Code == requestDto.ApplicationCode
                         : ua => existing.Compile()(ua) && ua.Application.Code == requestDto.ApplicationCode);
                 filter = appCodeFilter(filter);
@@ -223,7 +244,7 @@ public class UserApplicationService : IUserApplicationService
             if (requestDto.IsActive.HasValue)
             {
                 var activeFilter = new Func<Expression<Func<UserApplication, bool>>, Expression<Func<UserApplication, bool>>>(
-                    existing => existing == null 
+                    existing => existing == null
                         ? ua => ua.IsActive == requestDto.IsActive.Value
                         : ua => existing.Compile()(ua) && ua.IsActive == requestDto.IsActive.Value);
                 filter = activeFilter(filter);
@@ -233,11 +254,11 @@ public class UserApplicationService : IUserApplicationService
             {
                 var searchFilter = requestDto.Filter.ToLower();
                 var textFilter = new Func<Expression<Func<UserApplication, bool>>, Expression<Func<UserApplication, bool>>>(
-                    existing => existing == null 
+                    existing => existing == null
                         ? ua => ua.User.Username.ToLower().Contains(searchFilter) ||
                                 ua.Application.Name.ToLower().Contains(searchFilter) ||
                                 ua.Application.Code.ToLower().Contains(searchFilter)
-                        : ua => existing.Compile()(ua) && 
+                        : ua => existing.Compile()(ua) &&
                                 (ua.User.Username.ToLower().Contains(searchFilter) ||
                                  ua.Application.Name.ToLower().Contains(searchFilter) ||
                                  ua.Application.Code.ToLower().Contains(searchFilter)));
@@ -251,7 +272,7 @@ public class UserApplicationService : IUserApplicationService
                 orderBy: orderBy,
                 pageNumber: requestDto.PageNumber,
                 pageSize: requestDto.PageSize,
-                includeProperties: [x => x.User, y=> y.Application]
+                includeProperties: [x => x.User, y => y.Application]
             );
 
             response.Data = new PaginationResponseDto<UserApplicationDto>

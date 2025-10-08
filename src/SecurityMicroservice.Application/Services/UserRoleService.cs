@@ -1,4 +1,5 @@
 using AutoMapper;
+using Ruway.Events.Command.Interfaces.Events;
 using SecurityMicroservice.Application.IServices;
 using SecurityMicroservice.Domain.Entities;
 using SecurityMicroservice.Infrastructure.IRepositories;
@@ -7,6 +8,7 @@ using SecurityMicroservice.Shared.DTOs;
 using SecurityMicroservice.Shared.Request.UserRole;
 using SecurityMicroservice.Shared.Response.Common;
 using System.Linq.Expressions;
+using Ruway.Events.Command.Interfaces.Enums;
 
 namespace SecurityMicroservice.Application.Services;
 
@@ -14,14 +16,23 @@ namespace SecurityMicroservice.Application.Services;
 public class UserRoleService : IUserRoleService
 {
     private readonly IUserRoleRepository _userRoleRepository;
+    private readonly IRoleRepository _roleRepository;
     private readonly IMapper _mapper;
+    private readonly IEventPublisher _eventPublisher;
+    private readonly IUserRepository _userRepository;
 
     public UserRoleService(
         IUserRoleRepository userRoleRepository,
-        IMapper mapper)
+        IRoleRepository roleRepository,
+        IMapper mapper,
+        IEventPublisher eventPublisher,
+        IUserRepository userRepository)
     {
         _userRoleRepository = userRoleRepository;
+        _roleRepository = roleRepository;
         _mapper = mapper;
+        _eventPublisher = eventPublisher;
+        _userRepository = userRepository;
     }
 
     public async Task<List<UserRoleDto>> GetAllAsync()
@@ -105,6 +116,9 @@ public class UserRoleService : IUserRoleService
 
             _userRoleRepository.Insert(userRole);
             result.Data = _mapper.Map<UserRoleDto>(userRole);
+
+            await PublishEventsAsync(userRole.UserId, userRole.RoleId, UserActions.Created);
+            
         }
         catch (Exception ex)
         {
@@ -135,12 +149,30 @@ public class UserRoleService : IUserRoleService
 
             _userRoleRepository.Update(userRole);
             result.Data = _mapper.Map<UserRoleDto>(userRole);
+
+            await PublishEventsAsync(userId, roleId, UserActions.Updated);
         }
         catch (Exception ex)
         {
             result = ResponseDto.Error<UserRoleDto>(ex.Message);
         }
         return result;
+    }
+
+    private async Task PublishEventsAsync(Guid userId, Guid roleId, UserActions action)
+    {
+        var user = await _userRepository.GetFirstOrDefaultAsync(filter: x => x.UserId == userId);
+        var role = await _roleRepository.GetFirstOrDefaultAsync(filter: x => x.RoleId == roleId, includeProperties: [r => r.Application]);
+
+        var userRoleAssignedEvent = new UserRoleAssignedEvent(
+            user.UserId,
+            role.Code ?? "",
+            role.Name ?? "",
+            ApplicationCode: role.Application.Code ?? "",
+            Actions: action
+            );
+
+        await _eventPublisher.PublishAsync(userRoleAssignedEvent);
     }
 
     public async Task<ResponseDto> DeleteAsync(Guid userId, Guid roleId)
@@ -156,6 +188,8 @@ public class UserRoleService : IUserRoleService
             }
 
             _userRoleRepository.Delete(userId, roleId);
+
+            await PublishEventsAsync(userId, roleId, UserActions.Deleted);
         }
         catch (Exception ex)
         {

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using SecurityMicroservice.Application.Services;
 using SecurityMicroservice.Domain.Entities;
 using SecurityMicroservice.Infrastructure.Data;
+using SecurityMicroservice.Infrastructure.IRepositories;
 using SecurityMicroservice.Infrastructure.Repositories;
 using SecurityMicroservice.Infrastructure.Services;
 using Xunit;
