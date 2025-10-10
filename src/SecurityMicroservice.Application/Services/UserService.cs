@@ -55,7 +55,7 @@ public class UserService : IUserService
         {
             var user = new User
             {
-                Username = request.Username,
+                UserName = request.Username,
                 PasswordHash = _passwordService.HashPassword(request.Password),
                 FirstName = request.FirstName ?? "",
                 LastName = request.LastName ?? "",
@@ -88,7 +88,7 @@ public class UserService : IUserService
                 return result;
             }
 
-            entity.Username = string.IsNullOrWhiteSpace(request.Username) ? entity.Username : request.Username;
+            entity.UserName = string.IsNullOrWhiteSpace(request.Username) ? entity.UserName : request.Username;
             entity.PasswordHash = string.IsNullOrWhiteSpace(request.Password) ? entity.PasswordHash : _passwordService.HashPassword(request.Password);
             entity.FirstName = string.IsNullOrWhiteSpace(request.FirstName) ? entity.FirstName : request.FirstName;
             entity.LastName = string.IsNullOrWhiteSpace(request.LastName) ? entity.LastName : request.LastName;
@@ -123,7 +123,7 @@ public class UserService : IUserService
                 var filterLower = requestDto.Filter.ToLower();
 
                 filter = x =>
-                    x.Username.ToLower().Contains(filterLower) ||
+                    x.UserName.ToLower().Contains(filterLower) ||
                     x.FirstName.ToLower().Contains(filterLower) ||
                     x.LastName.ToLower().Contains(filterLower);
             }

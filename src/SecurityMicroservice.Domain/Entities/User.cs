@@ -5,7 +5,7 @@ namespace SecurityMicroservice.Domain.Entities;
 public class User: BaseEntity
 {
     public Guid UserId { get; set; } = Guid.NewGuid();
-    public string Username { get; set; } = string.Empty;
+    public string UserName { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
     public UserStatus Status { get; set; } = UserStatus.Active;
     public Guid? EmployeeId { get; set; } // Reference to master microservice

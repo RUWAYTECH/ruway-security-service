@@ -180,12 +180,12 @@ public class UserPermissionService : IUserPermissionService
                 var searchFilter = requestDto.Filter.ToLower();
                 var textFilter = new Func<Expression<Func<UserPermission, bool>>, Expression<Func<UserPermission, bool>>>(
                     existing => existing == null 
-                        ? up => up.User.Username.ToLower().Contains(searchFilter) ||
+                        ? up => up.User.UserName.ToLower().Contains(searchFilter) ||
                                 up.Permission.Option.Name.ToLower().Contains(searchFilter) ||
                                 up.Permission.Option.Module.Name.ToLower().Contains(searchFilter) ||
                                 up.Permission.Option.Module.Application.Name.ToLower().Contains(searchFilter)
                         : up => existing.Compile()(up) && 
-                                (up.User.Username.ToLower().Contains(searchFilter) ||
+                                (up.User.UserName.ToLower().Contains(searchFilter) ||
                                  up.Permission.Option.Name.ToLower().Contains(searchFilter) ||
                                  up.Permission.Option.Module.Name.ToLower().Contains(searchFilter) ||
                                  up.Permission.Option.Module.Application.Name.ToLower().Contains(searchFilter)));

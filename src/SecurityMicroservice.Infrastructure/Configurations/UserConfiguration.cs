@@ -12,7 +12,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         
         builder.HasKey(u => u.UserId);
         
-        builder.Property(u => u.Username)
+        builder.Property(u => u.UserName)
             .IsRequired()
             .HasMaxLength(100);
         
@@ -31,7 +31,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
            builder.Property(u => u.CreatedAt);
         
 
-        builder.HasIndex(u => u.Username)
+        builder.HasIndex(u => u.UserName)
             .IsUnique();
         
         builder.HasIndex(u => u.EmployeeId);

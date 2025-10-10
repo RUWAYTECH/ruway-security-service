@@ -686,7 +686,7 @@ public static class SeedData
         var adminUser = new User
         {
             UserId = Guid.NewGuid(),
-            Username = "admin",
+            UserName = "admin",
             PasswordHash = passwordService.HashPassword("admin123"),
             Status = UserStatus.Active,
             EmployeeId = Guid.NewGuid(),

@@ -63,7 +63,7 @@ public class AuthController : ControllerBase
                 roleType: Claims.Role);
 
             identity.SetClaim(Claims.Subject, user.UserId.ToString())
-                    .SetClaim(Claims.Name, user.Username)
+                    .SetClaim(Claims.Name, user.UserName)
                     .SetClaim("employee_id", user.EmployeeId?.ToString())
                     .SetClaim("first_name", user.FirstName)
                     .SetClaim("last_name", user.LastName)

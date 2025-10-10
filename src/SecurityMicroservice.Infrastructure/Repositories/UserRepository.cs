@@ -43,7 +43,7 @@ public class UserRepository : EFRepository<User>, IUserRepository
                     .ThenInclude(p => p.Option)
                         .ThenInclude(o => o.Module)
                             .ThenInclude(m => m.Application)
-            .FirstOrDefaultAsync(u => u.Username == username);
+            .FirstOrDefaultAsync(u => u.UserName == username);
     }
 
     public async Task<List<User>> GetByApplicationIdAsync(Guid applicationId)

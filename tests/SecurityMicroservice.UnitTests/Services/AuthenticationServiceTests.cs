@@ -35,7 +35,7 @@ public class AuthenticationServiceTests : IDisposable
         // Arrange
         var user = new User
         {
-            Username = "testuser",
+            UserName = "testuser",
             PasswordHash = _passwordService.HashPassword("password123"),
             Status = UserStatus.Active
         };
@@ -48,7 +48,7 @@ public class AuthenticationServiceTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result!.Username.Should().Be("testuser");
+        result!.UserName.Should().Be("testuser");
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public class AuthenticationServiceTests : IDisposable
         // Arrange
         var user = new User
         {
-            Username = "testuser",
+            UserName = "testuser",
             PasswordHash = _passwordService.HashPassword("password123"),
             Status = UserStatus.Active
         };
@@ -78,7 +78,7 @@ public class AuthenticationServiceTests : IDisposable
         // Arrange
         var user = new User
         {
-            Username = "testuser",
+            UserName = "testuser",
             PasswordHash = _passwordService.HashPassword("password123"),
             Status = UserStatus.Inactive
         };
@@ -113,7 +113,7 @@ public class AuthenticationServiceTests : IDisposable
 
         var user = new User
         {
-            Username = "testuser",
+            UserName = "testuser",
             PasswordHash = _passwordService.HashPassword("password123"),
             Status = UserStatus.Active,
             EmployeeId = Guid.NewGuid()

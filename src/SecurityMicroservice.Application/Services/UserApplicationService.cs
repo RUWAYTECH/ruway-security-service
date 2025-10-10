@@ -171,7 +171,7 @@ public class UserApplicationService : IUserApplicationService
         var userUpdatedEvent = new UserUpdatedEvent(
             user.UserId,
             user.EmployeeId.Value,
-            user.Username,
+            user.UserName,
             user.FirstName ?? "",
             user.LastName ?? "",
             user.Email ?? "",
@@ -255,11 +255,11 @@ public class UserApplicationService : IUserApplicationService
                 var searchFilter = requestDto.Filter.ToLower();
                 var textFilter = new Func<Expression<Func<UserApplication, bool>>, Expression<Func<UserApplication, bool>>>(
                     existing => existing == null
-                        ? ua => ua.User.Username.ToLower().Contains(searchFilter) ||
+                        ? ua => ua.User.UserName.ToLower().Contains(searchFilter) ||
                                 ua.Application.Name.ToLower().Contains(searchFilter) ||
                                 ua.Application.Code.ToLower().Contains(searchFilter)
                         : ua => existing.Compile()(ua) &&
-                                (ua.User.Username.ToLower().Contains(searchFilter) ||
+                                (ua.User.UserName.ToLower().Contains(searchFilter) ||
                                  ua.Application.Name.ToLower().Contains(searchFilter) ||
                                  ua.Application.Code.ToLower().Contains(searchFilter)));
                 filter = textFilter(filter);

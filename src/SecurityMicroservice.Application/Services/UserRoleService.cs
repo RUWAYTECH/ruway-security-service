@@ -251,12 +251,12 @@ public class UserRoleService : IUserRoleService
                 var searchFilter = requestDto.Filter.ToLower();
                 var textFilter = new Func<Expression<Func<UserRole, bool>>, Expression<Func<UserRole, bool>>>(
                     existing => existing == null 
-                        ? ur => ur.User.Username.ToLower().Contains(searchFilter) ||
+                        ? ur => ur.User.UserName.ToLower().Contains(searchFilter) ||
                                 ur.Role.Name.ToLower().Contains(searchFilter) ||
                                 ur.Role.Code.ToLower().Contains(searchFilter) ||
                                 ur.Role.Application.Name.ToLower().Contains(searchFilter)
                         : ur => existing.Compile()(ur) && 
-                                (ur.User.Username.ToLower().Contains(searchFilter) ||
+                                (ur.User.UserName.ToLower().Contains(searchFilter) ||
                                  ur.Role.Name.ToLower().Contains(searchFilter) ||
                                  ur.Role.Code.ToLower().Contains(searchFilter) ||
                                  ur.Role.Application.Name.ToLower().Contains(searchFilter)));
