@@ -117,7 +117,7 @@ public class UserService : IUserService
         var response = ResponseDto.Create<PaginationResponseDto<UserResponseDto>>();
         try
         {
-            System.Linq.Expressions.Expression<System.Func<User, bool>> filter = x => x.UserApplications.Any(a => a.Application.Code == requestDto.ApplicationCode);
+            System.Linq.Expressions.Expression<System.Func<User, bool>> filter = x => x.Status == UserStatus.Active;
             if (!string.IsNullOrEmpty(requestDto.Filter))
             {
                 var filterLower = requestDto.Filter.ToLower();

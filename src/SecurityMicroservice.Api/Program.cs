@@ -2,6 +2,7 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using OpenIddict.Server;
 using SecurityMicroservice.Api.Authorization;
+using SecurityMicroservice.Api.Configuration;
 using SecurityMicroservice.Application.IServices;
 using SecurityMicroservice.Application.Mappings;
 using SecurityMicroservice.Application.Services;
@@ -12,6 +13,10 @@ using SecurityMicroservice.Infrastructure.Services;
 using Ruway.Events.Command.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Load token configuration
+var tokenConfig = new TokenConfiguration();
+builder.Configuration.GetSection("TokenConfiguration").Bind(tokenConfig);
 
 // Configure Kestrel for HTTPS
 builder.WebHost.ConfigureKestrel(options =>
@@ -57,6 +62,11 @@ builder.Services.AddOpenIddict()
                .AllowClientCredentialsFlow();
 
         options.AcceptAnonymousClients();
+
+        // Configure token lifetimes from appsettings
+        options.SetAccessTokenLifetime(TimeSpan.FromMinutes(tokenConfig.AccessTokenLifetimeMinutes))
+               .SetRefreshTokenLifetime(TimeSpan.FromDays(tokenConfig.RefreshTokenLifetimeDays))
+               .SetIdentityTokenLifetime(TimeSpan.FromMinutes(tokenConfig.IdentityTokenLifetimeMinutes));
 
         // Use ephemeral keys for all local development scenarios
         // This avoids macOS keychain permission issues
