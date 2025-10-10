@@ -12,8 +12,8 @@ using SecurityMicroservice.Infrastructure.Data;
 namespace SecurityMicroservice.Infrastructure.Migrations
 {
     [DbContext(typeof(SecurityDbContext))]
-    [Migration("20250929172108_InitialMigration")]
-    partial class InitialMigration
+    [Migration("20251010203306_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -532,7 +532,7 @@ namespace SecurityMicroservice.Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Username")
+                    b.Property<string>("UserName")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -541,7 +541,7 @@ namespace SecurityMicroservice.Infrastructure.Migrations
 
                     b.HasIndex("EmployeeId");
 
-                    b.HasIndex("Username")
+                    b.HasIndex("UserName")
                         .IsUnique();
 
                     b.ToTable("Users", (string)null);

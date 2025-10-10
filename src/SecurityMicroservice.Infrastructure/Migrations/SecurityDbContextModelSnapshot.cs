@@ -529,7 +529,7 @@ namespace SecurityMicroservice.Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Username")
+                    b.Property<string>("UserName")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -538,7 +538,7 @@ namespace SecurityMicroservice.Infrastructure.Migrations
 
                     b.HasIndex("EmployeeId");
 
-                    b.HasIndex("Username")
+                    b.HasIndex("UserName")
                         .IsUnique();
 
                     b.ToTable("Users", (string)null);

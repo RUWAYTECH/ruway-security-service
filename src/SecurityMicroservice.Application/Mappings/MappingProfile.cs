@@ -35,10 +35,16 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.ApplicationCode, opt => opt.MapFrom(src => src.Module.Application.Code));
 
         // UserApplication mappings
-        CreateMap<UserApplication, UserApplicationDto>()
-            .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.User.UserName))
-            .ForMember(dest => dest.ApplicationName, opt => opt.MapFrom(src => src.Application.Name))
-            .ForMember(dest => dest.ApplicationCode, opt => opt.MapFrom(src => src.Application.Code));
+        CreateMap<UserApplication, UserApplicationDto>().AfterMap((src, dest, context) =>
+        {
+            dest.FirstName = src.User.FirstName;
+            dest.LastName = src.User.LastName;
+            dest.Notes = src.Notes;
+            dest.ApplicationCode = src.Application.Code;
+            dest.ApplicationName = src.Application.Name;
+            dest.UserName = src.User.UserName;
+            dest.Email = src.User.Email;
+        });
 
         // UserRole mappings
         CreateMap<UserRole, UserRoleDto>()

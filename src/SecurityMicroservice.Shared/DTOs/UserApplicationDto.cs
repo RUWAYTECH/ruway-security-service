@@ -8,9 +8,14 @@ public class UserApplicationDto
     public DateTime AssignedAt { get; set; }
     public DateTime? RevokedAt { get; set; }
     public string? Notes { get; set; }
-    
+
     // Navigation properties for display
-    public string Username { get; set; } = string.Empty;
+    public string UserName { get; set; } = string.Empty;
+
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+
+    public string Email { get; set; } = string.Empty;
     public string ApplicationName { get; set; } = string.Empty;
     public string ApplicationCode { get; set; } = string.Empty;
 }
