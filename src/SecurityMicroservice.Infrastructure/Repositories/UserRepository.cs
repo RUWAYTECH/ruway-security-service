@@ -155,7 +155,7 @@ public class UserRepository : EFRepository<User>, IUserRepository
     )
     {
         IQueryable<User> query = _context.Users
-                .Include(u => u.UserRoles.Where(t => t.Role.Application.Code == applicationCode))
+                .Include(u => u.UserRoles.Where(t => t.Role.Application.Code == applicationCode || string.IsNullOrEmpty(applicationCode)))
                     .ThenInclude(ur => ur.Role)
                     .ThenInclude(ap => ap.Application);
 

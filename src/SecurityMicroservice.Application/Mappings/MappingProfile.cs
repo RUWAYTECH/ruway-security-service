@@ -20,6 +20,10 @@ public class MappingProfile : Profile
         CreateMap<Role, RoleDto>()
             .ForMember(dest => dest.ApplicationCode, opt => opt.MapFrom(src => src.Application.Code));
 
+        CreateMap<Domain.Entities.Module, ModuleManagementDto>()
+            .ForMember(dest => dest.ApplicationCode, opt => opt.MapFrom(src => src.Application.Code))
+            .ForMember(dest => dest.ApplicationName, opt => opt.MapFrom(src => src.Application.Name));
+
         CreateMap<Permission, PermissionResponseDto>()
             .ForMember(dest => dest.OptionName, opt => opt.MapFrom(src => src.Option.Name))
             .ForMember(dest => dest.OptionRoute, opt => opt.MapFrom(src => src.Option.Route))
