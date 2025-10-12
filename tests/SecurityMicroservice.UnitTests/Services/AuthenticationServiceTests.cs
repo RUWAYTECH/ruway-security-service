@@ -1,11 +1,13 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using SecurityMicroservice.Application.Services;
 using SecurityMicroservice.Domain.Entities;
 using SecurityMicroservice.Infrastructure.Data;
 using SecurityMicroservice.Infrastructure.IRepositories;
 using SecurityMicroservice.Infrastructure.Repositories;
 using SecurityMicroservice.Infrastructure.Services;
+using SecurityMicroservice.Shared.DTOs;
 using Xunit;
 
 namespace SecurityMicroservice.UnitTests.Services;
@@ -16,6 +18,8 @@ public class AuthenticationServiceTests : IDisposable
     private readonly IPasswordService _passwordService;
     private readonly IUserRepository _userRepository;
     private readonly IAuthenticationService _authenticationService;
+    private readonly IOptions<TokenConfiguration> _tokenConfig;
+   
 
     public AuthenticationServiceTests()
     {
@@ -26,7 +30,10 @@ public class AuthenticationServiceTests : IDisposable
         _context = new SecurityDbContext(options);
         _passwordService = new PasswordService();
         _userRepository = new UserRepository(_context);
-        _authenticationService = new AuthenticationService(_userRepository, _passwordService);
+        _tokenConfig = Options.Create(new TokenConfiguration()); 
+        
+
+        _authenticationService = new AuthenticationService(_userRepository, _passwordService, _tokenConfig);
     }
 
     [Fact]
