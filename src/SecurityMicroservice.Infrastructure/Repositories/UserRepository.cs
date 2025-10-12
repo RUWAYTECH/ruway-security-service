@@ -64,7 +64,7 @@ public class UserRepository : EFRepository<User>, IUserRepository
                     .ThenInclude(o => o.Module)
                         .ThenInclude(m => m.Application)
             .Where(up => up.Permission.IsActive && up.Permission.Option.IsActive && up.Permission.Option.Module.Application.IsActive)
-            .Select(up => $"{up.Permission.Option.Module.Application.Code}:{up.Permission.Option.Name}:{up.Permission.ActionCode}")
+            .Select(up => $"{up.Permission.Option.Module.Application.Code}:{up.Permission.Option.Code}:{up.Permission.ActionCode}")
             .ToListAsync();
 
         var rolePermissions = await _context.UserRoles
@@ -76,7 +76,7 @@ public class UserRepository : EFRepository<User>, IUserRepository
                             .ThenInclude(m => m.Application)
             .SelectMany(ur => ur.Role.Permissions)
             .Where(p => p.IsActive && p.Option.IsActive && p.Option.Module.Application.IsActive)
-            .Select(p => $"{p.Option.Module.Application.Code}:{p.Option.Name}:{p.ActionCode}")
+            .Select(p => $"{p.Option.Module.Application.Code}:{p.Option.Code}:{p.ActionCode}")
             .ToListAsync();
 
         return permissions.Concat(rolePermissions).Distinct().ToList();
@@ -118,13 +118,15 @@ public class UserRepository : EFRepository<User>, IUserRepository
 
     public async Task<List<string>> GetUserRolesAsync(Guid userId)
     {
-        return await _context.UserRoles
+        var userRoles = await _context.UserRoles
             .Where(ur => ur.UserId == userId)
             .Include(ur => ur.Role)
                 .ThenInclude(r => r.Application)
             .Where(ur => ur.Role.IsActive && ur.Role.Application.IsActive)
-            .Select(ur => $"{ur.Role.Application.Code}_{ur.Role.Code}")
+            .Select(ur =>$"{ur.Role.Application.Code}_{ur.Role.Code}_{ur.Role.Name}")
             .ToListAsync();
+
+        return userRoles;
     }
 
     public async Task<List<string>> GetUserApplicationScopesAsync(Guid userId)

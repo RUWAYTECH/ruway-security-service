@@ -2,7 +2,6 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using OpenIddict.Server;
 using SecurityMicroservice.Api.Authorization;
-using SecurityMicroservice.Api.Configuration;
 using SecurityMicroservice.Application.IServices;
 using SecurityMicroservice.Application.Mappings;
 using SecurityMicroservice.Application.Services;
@@ -11,6 +10,7 @@ using SecurityMicroservice.Infrastructure.IRepositories;
 using SecurityMicroservice.Infrastructure.Repositories;
 using SecurityMicroservice.Infrastructure.Services;
 using Ruway.Events.Command.Configuration;
+using SecurityMicroservice.Shared.DTOs;
 
 var builder = WebApplication.CreateBuilder(args);
 

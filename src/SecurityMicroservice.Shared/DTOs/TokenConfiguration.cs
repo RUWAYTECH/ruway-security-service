@@ -1,4 +1,4 @@
-namespace SecurityMicroservice.Api.Configuration;
+namespace SecurityMicroservice.Shared.DTOs;
 
 public class TokenConfiguration
 {

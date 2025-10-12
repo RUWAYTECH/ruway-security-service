@@ -1,6 +1,6 @@
+using Microsoft.Extensions.Options;
 using SecurityMicroservice.Domain.Entities;
 using SecurityMicroservice.Infrastructure.IRepositories;
-using SecurityMicroservice.Infrastructure.Repositories;
 using SecurityMicroservice.Infrastructure.Services;
 using SecurityMicroservice.Shared.DTOs;
 
@@ -19,13 +19,16 @@ public class AuthenticationService : IAuthenticationService
 {
     private readonly IUserRepository _userRepository;
     private readonly IPasswordService _passwordService;
+    private readonly IOptions<TokenConfiguration> _tokenConfiguration;
 
     public AuthenticationService(
         IUserRepository userRepository,
-        IPasswordService passwordService)
+        IPasswordService passwordService,
+        IOptions<TokenConfiguration> tokenConfiguration)
     {
         _userRepository = userRepository;
         _passwordService = passwordService;
+        _tokenConfiguration = tokenConfiguration;
     }
 
     public async Task<User?> ValidateUserAsync(string username, string password)
@@ -57,7 +60,10 @@ public class AuthenticationService : IAuthenticationService
             Roles = roles,
             Permissions = permissions,
             EmployeeId = user.EmployeeId,
-            ExpiresIn = 3600 // 1 hour
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Email = user.Email,
+            ExpiresIn = _tokenConfiguration.Value.AccessTokenLifetimeMinutes
         };
     }
 
