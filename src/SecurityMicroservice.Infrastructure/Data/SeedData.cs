@@ -62,6 +62,17 @@ public static class SeedData
             CreatedAt = DateTime.UtcNow
         };
 
+        var securityAppAdminRole = new Role
+        {
+            RoleId = Guid.NewGuid(),
+            ApplicationId = securityApp.ApplicationId,
+            Code = "APP_ADMIN",
+            Name = "Administrador de aplicación",
+            Description = "Administrador del sistema de seguridad con permisos completos",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
         var auditorAdminRole = new Role
         {
             RoleId = Guid.NewGuid(),
@@ -153,6 +164,7 @@ public static class SeedData
 
         await context.Roles.AddRangeAsync(
             superAdminRole, 
+            securityAppAdminRole,
             auditorAdminRole, 
             memoUserRole,
             memoAdministradorRole,
@@ -201,10 +213,24 @@ public static class SeedData
             CreatedAt = DateTime.UtcNow
         };
 
+        // Security modules
+        var securityAdministracionModule = new Module
+        {
+            ModuleId = Guid.NewGuid(),
+            ApplicationId = securityApp.ApplicationId,
+            Code = "SEC_M001",
+            Name = "Administración",
+            Description = "Módulo de administración del sistema de seguridad",
+            Icon = "admin_panel_settings",
+            Order = 1,
+            CreatedAt = DateTime.UtcNow
+        };
+
         await context.Modules.AddRangeAsync(
             memosInicioModule, 
             memosTrazabilidadModule, 
-            memosAdministracionModule);
+            memosAdministracionModule,
+            securityAdministracionModule);
 
        
         // Create options for Memos - Inicio Module
@@ -366,6 +392,72 @@ public static class SeedData
             CreatedAt = DateTime.UtcNow
         };
 
+        // Security options
+        var securityAplicacionesOption = new Option
+        {
+            OptionId = Guid.NewGuid(),
+            ModuleId = securityAdministracionModule.ModuleId,
+            Code = "SEC_OP001",
+            Name = "Aplicaciones",
+            Icon = "apps",
+            Route = "/secure/applications",
+            HttpMethod = "GET",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var securityUsuariosOption = new Option
+        {
+            OptionId = Guid.NewGuid(),
+            ModuleId = securityAdministracionModule.ModuleId,
+            Code = "SEC_OP002",
+            Name = "Usuarios",
+            Icon = "group",
+            Route = "/secure/users",
+            HttpMethod = "GET",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var securityRolesOption = new Option
+        {
+            OptionId = Guid.NewGuid(),
+            ModuleId = securityAdministracionModule.ModuleId,
+            Code = "SEC_OP003",
+            Name = "Roles",
+            Icon = "assignment_ind",
+            Route = "/secure/roles",
+            HttpMethod = "GET",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var securityModulosOption = new Option
+        {
+            OptionId = Guid.NewGuid(),
+            ModuleId = securityAdministracionModule.ModuleId,
+            Code = "SEC_OP004",
+            Name = "Módulos",
+            Icon = "view_module",
+            Route = "/secure/modules",
+            HttpMethod = "GET",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var securityUsuariosAplicacionOption = new Option
+        {
+            OptionId = Guid.NewGuid(),
+            ModuleId = securityAdministracionModule.ModuleId,
+            Code = "SEC_OP005",
+            Name = "Usuarios Aplicación",
+            Icon = "manage_accounts",
+            Route = "/secure/user-applications",
+            HttpMethod = "GET",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
         await context.Options.AddRangeAsync(
             memosDashboardOption,
             memosMemorandumOption,
@@ -378,7 +470,12 @@ public static class SeedData
             memosEmpleadosOption,
             memosSancionOption,
             memosTemplateOption,
-            memosSecuenciaOption);
+            memosSecuenciaOption,
+            securityAplicacionesOption,
+            securityUsuariosOption,
+            securityRolesOption,
+            securityModulosOption,
+            securityUsuariosAplicacionOption);
 
        
         // Permisos para SYSADMIN (acceso completo)
@@ -648,6 +745,212 @@ public static class SeedData
             CreatedAt = DateTime.UtcNow
         };
 
+        // Security permissions for APP_ADMIN role - Full CRUD access
+        // Aplicaciones permissions
+        var securityAppAdminAplicacionesCreate = new Permission
+        {
+            PermissionId = Guid.NewGuid(),
+            RoleId = securityAppAdminRole.RoleId,
+            OptionId = securityAplicacionesOption.OptionId,
+            ActionCode = ActionCodes.Create,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var securityAppAdminAplicacionesRead = new Permission
+        {
+            PermissionId = Guid.NewGuid(),
+            RoleId = securityAppAdminRole.RoleId,
+            OptionId = securityAplicacionesOption.OptionId,
+            ActionCode = ActionCodes.Read,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var securityAppAdminAplicacionesUpdate = new Permission
+        {
+            PermissionId = Guid.NewGuid(),
+            RoleId = securityAppAdminRole.RoleId,
+            OptionId = securityAplicacionesOption.OptionId,
+            ActionCode = ActionCodes.Update,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var securityAppAdminAplicacionesDelete = new Permission
+        {
+            PermissionId = Guid.NewGuid(),
+            RoleId = securityAppAdminRole.RoleId,
+            OptionId = securityAplicacionesOption.OptionId,
+            ActionCode = ActionCodes.Delete,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        // Usuarios permissions
+        var securityAppAdminUsuariosCreate = new Permission
+        {
+            PermissionId = Guid.NewGuid(),
+            RoleId = securityAppAdminRole.RoleId,
+            OptionId = securityUsuariosOption.OptionId,
+            ActionCode = ActionCodes.Create,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var securityAppAdminUsuariosRead = new Permission
+        {
+            PermissionId = Guid.NewGuid(),
+            RoleId = securityAppAdminRole.RoleId,
+            OptionId = securityUsuariosOption.OptionId,
+            ActionCode = ActionCodes.Read,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var securityAppAdminUsuariosUpdate = new Permission
+        {
+            PermissionId = Guid.NewGuid(),
+            RoleId = securityAppAdminRole.RoleId,
+            OptionId = securityUsuariosOption.OptionId,
+            ActionCode = ActionCodes.Update,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var securityAppAdminUsuariosDelete = new Permission
+        {
+            PermissionId = Guid.NewGuid(),
+            RoleId = securityAppAdminRole.RoleId,
+            OptionId = securityUsuariosOption.OptionId,
+            ActionCode = ActionCodes.Delete,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        // Roles permissions
+        var securityAppAdminRolesCreate = new Permission
+        {
+            PermissionId = Guid.NewGuid(),
+            RoleId = securityAppAdminRole.RoleId,
+            OptionId = securityRolesOption.OptionId,
+            ActionCode = ActionCodes.Create,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var securityAppAdminRolesRead = new Permission
+        {
+            PermissionId = Guid.NewGuid(),
+            RoleId = securityAppAdminRole.RoleId,
+            OptionId = securityRolesOption.OptionId,
+            ActionCode = ActionCodes.Read,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var securityAppAdminRolesUpdate = new Permission
+        {
+            PermissionId = Guid.NewGuid(),
+            RoleId = securityAppAdminRole.RoleId,
+            OptionId = securityRolesOption.OptionId,
+            ActionCode = ActionCodes.Update,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var securityAppAdminRolesDelete = new Permission
+        {
+            PermissionId = Guid.NewGuid(),
+            RoleId = securityAppAdminRole.RoleId,
+            OptionId = securityRolesOption.OptionId,
+            ActionCode = ActionCodes.Delete,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        // Módulos permissions
+        var securityAppAdminModulosCreate = new Permission
+        {
+            PermissionId = Guid.NewGuid(),
+            RoleId = securityAppAdminRole.RoleId,
+            OptionId = securityModulosOption.OptionId,
+            ActionCode = ActionCodes.Create,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var securityAppAdminModulosRead = new Permission
+        {
+            PermissionId = Guid.NewGuid(),
+            RoleId = securityAppAdminRole.RoleId,
+            OptionId = securityModulosOption.OptionId,
+            ActionCode = ActionCodes.Read,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var securityAppAdminModulosUpdate = new Permission
+        {
+            PermissionId = Guid.NewGuid(),
+            RoleId = securityAppAdminRole.RoleId,
+            OptionId = securityModulosOption.OptionId,
+            ActionCode = ActionCodes.Update,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var securityAppAdminModulosDelete = new Permission
+        {
+            PermissionId = Guid.NewGuid(),
+            RoleId = securityAppAdminRole.RoleId,
+            OptionId = securityModulosOption.OptionId,
+            ActionCode = ActionCodes.Delete,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        // Usuarios Aplicación permissions
+        var securityAppAdminUsuariosAplicacionCreate = new Permission
+        {
+            PermissionId = Guid.NewGuid(),
+            RoleId = securityAppAdminRole.RoleId,
+            OptionId = securityUsuariosAplicacionOption.OptionId,
+            ActionCode = ActionCodes.Create,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var securityAppAdminUsuariosAplicacionRead = new Permission
+        {
+            PermissionId = Guid.NewGuid(),
+            RoleId = securityAppAdminRole.RoleId,
+            OptionId = securityUsuariosAplicacionOption.OptionId,
+            ActionCode = ActionCodes.Read,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var securityAppAdminUsuariosAplicacionUpdate = new Permission
+        {
+            PermissionId = Guid.NewGuid(),
+            RoleId = securityAppAdminRole.RoleId,
+            OptionId = securityUsuariosAplicacionOption.OptionId,
+            ActionCode = ActionCodes.Update,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var securityAppAdminUsuariosAplicacionDelete = new Permission
+        {
+            PermissionId = Guid.NewGuid(),
+            RoleId = securityAppAdminRole.RoleId,
+            OptionId = securityUsuariosAplicacionOption.OptionId,
+            ActionCode = ActionCodes.Delete,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
         await context.Permissions.AddRangeAsync(
             // SYSADMIN - Acceso completo
             sysAdminPermissionDashboard,
@@ -680,7 +983,28 @@ public static class SeedData
             // Jefatura
             jefaturaPermissionBandeja,
             // Empleado
-            empleadoPermissionBandeja);
+            empleadoPermissionBandeja,
+            // Security APP_ADMIN - Full CRUD permissions
+            securityAppAdminAplicacionesCreate,
+            securityAppAdminAplicacionesRead,
+            securityAppAdminAplicacionesUpdate,
+            securityAppAdminAplicacionesDelete,
+            securityAppAdminUsuariosCreate,
+            securityAppAdminUsuariosRead,
+            securityAppAdminUsuariosUpdate,
+            securityAppAdminUsuariosDelete,
+            securityAppAdminRolesCreate,
+            securityAppAdminRolesRead,
+            securityAppAdminRolesUpdate,
+            securityAppAdminRolesDelete,
+            securityAppAdminModulosCreate,
+            securityAppAdminModulosRead,
+            securityAppAdminModulosUpdate,
+            securityAppAdminModulosDelete,
+            securityAppAdminUsuariosAplicacionCreate,
+            securityAppAdminUsuariosAplicacionRead,
+            securityAppAdminUsuariosAplicacionUpdate,
+            securityAppAdminUsuariosAplicacionDelete);
 
         // Create admin user
         var adminUser = new User
@@ -750,8 +1074,16 @@ public static class SeedData
             AssignedAt = DateTime.UtcNow
         };
 
+        var userSecurityAppAdminRole = new UserRole
+        {
+            UserId = adminUser.UserId,
+            RoleId = securityAppAdminRole.RoleId,
+            AssignedAt = DateTime.UtcNow
+        };
+
         await context.UserRoles.AddRangeAsync(
             userSuperAdminRole,
+            userSecurityAppAdminRole,
             userAuditorRole,
             userMemoRole);
 

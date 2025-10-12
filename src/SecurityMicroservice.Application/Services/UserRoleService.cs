@@ -163,11 +163,12 @@ public class UserRoleService : IUserRoleService
     {
         var user = await _userRepository.GetFirstOrDefaultAsync(filter: x => x.UserId == userId);
         var role = await _roleRepository.GetFirstOrDefaultAsync(filter: x => x.RoleId == roleId, includeProperties: [r => r.Application]);
+        var userRoles = await _userRoleRepository.GetByUserIdAsync(userId);
 
         var userRoleAssignedEvent = new UserRoleAssignedEvent(
             user.UserId,
-            role.Code ?? "",
-            role.Name ?? "",
+            RoleCode: userRoles.Select(a=>a.Role.Code ?? "").ToList().ToString(),
+            RoleName: userRoles.Select(a=>a.Role.Name ?? "").ToList().ToString(),
             ApplicationCode: role.Application.Code ?? "",
             Actions: action
             );
