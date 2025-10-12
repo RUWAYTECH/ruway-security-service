@@ -9,6 +9,8 @@ public class CreateUserApplicationRequest
     
     [Required]
     public Guid ApplicationId { get; set; }
+
+    public Guid RoleId { get; set; }
     
     [StringLength(500)]
     public string? Notes { get; set; }

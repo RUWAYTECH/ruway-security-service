@@ -17,6 +17,7 @@ public class UserApplicationService : IUserApplicationService
     private readonly IMapper _mapper;
     private readonly IEventPublisher _eventPublisher;
     private readonly IUserRepository _userRepository;
+    private readonly IUserRoleService _userRoleService;
 
     private readonly IApplicationRepository _applicationRepository;
 
@@ -26,13 +27,16 @@ public class UserApplicationService : IUserApplicationService
         IMapper mapper,
         IEventPublisher eventPublisher,
         IUserRepository userRepository,
-        IApplicationRepository applicationRepository)
+        IApplicationRepository applicationRepository,
+        IUserRoleService userRoleService
+        )
     {
         _userApplicationRepository = userApplicationRepository;
         _mapper = mapper;
         _eventPublisher = eventPublisher;
         _userRepository = userRepository;
         _applicationRepository = applicationRepository;
+        _userRoleService = userRoleService;
     }
 
     public async Task<List<UserApplicationDto>> GetAllAsync()
@@ -113,7 +117,15 @@ public class UserApplicationService : IUserApplicationService
             var application = await _applicationRepository.GetFirstOrDefaultAsync(filter: x => x.ApplicationId == request.ApplicationId && x.IsActive);
 
             await PublishEventsAsync(user.UserId, application.ApplicationId);
-
+            if (request.RoleId != Guid.Empty)
+            {
+                var userRoles = await _userRoleService.CreateAsync(new Shared.Request.UserRole.CreateUserRoleRequest
+                {
+                    UserId = request.UserId,
+                    RoleId = request.RoleId
+                });
+                result.Messages.AddRange(userRoles.Messages);
+            }
 
         }
         catch (Exception ex)
