@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SecurityMicroservice.Application.IServices;
 using SecurityMicroservice.Shared.Common;
+using SecurityMicroservice.Shared.DTOs;
 using SecurityMicroservice.Shared.Request.Permission;
 
 namespace SecurityMicroservice.Api.Controllers;
@@ -27,7 +28,7 @@ public class PermissionController : ControllerBase
     }
 
     [HttpGet()]
-    public async Task<IActionResult> GetPagedPermissions([FromQuery] PaginationRequestDto paginationRequestDto)
+    public async Task<IActionResult> GetPagedPermissions([FromQuery] PermissionFilterRequestDto paginationRequestDto)
     {
         var result = await _permissionService.GetPaged(paginationRequestDto);
         if (result.IsValid)

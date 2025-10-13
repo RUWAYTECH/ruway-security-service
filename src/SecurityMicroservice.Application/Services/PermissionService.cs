@@ -45,12 +45,12 @@ namespace SecurityMicroservice.Application.Services
             return result;
         }
 
-        public async Task<ResponseDto<PaginationResponseDto<PermissionResponseDto>>> GetPaged(PaginationRequestDto paginationRequestDto)
+        public async Task<ResponseDto<PaginationResponseDto<PermissionResponseDto>>> GetPaged(PermissionFilterRequestDto paginationRequestDto)
         {
             var result = ResponseDto.Create<PaginationResponseDto<PermissionResponseDto>>();
             try
             {
-                System.Linq.Expressions.Expression<System.Func<Permission, bool>> filter = x => x.IsActive;
+                System.Linq.Expressions.Expression<System.Func<Permission, bool>> filter = x => x.IsActive && x.RoleId == paginationRequestDto.RoleId;
 
                 Func<IQueryable<Permission>, IOrderedQueryable<Permission>> orderBy = q => q.OrderBy(x => x.CreatedAt);
 
