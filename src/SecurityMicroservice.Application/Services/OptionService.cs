@@ -14,12 +14,13 @@ namespace SecurityMicroservice.Application.Services;
 public class OptionService : IOptionService
 {
     private readonly IOptionRepository _optionRepository;
-    private readonly IRepository<Module> _moduleRepository;
+    private readonly IModuleRepository _moduleRepository;
+    
     private readonly IMapper _mapper;
 
     public OptionService(
         IOptionRepository optionRepository,
-        IRepository<Module> moduleRepository,
+        IModuleRepository moduleRepository,
         IMapper mapper)
     {
         _optionRepository = optionRepository;
@@ -171,38 +172,11 @@ public class OptionService : IOptionService
         var result = ResponseDto.Create<PaginationResponseDto<OptionDto>>();
         try
         {
-            Expression<Func<Option, bool>>? filter = null;
+            Expression<Func<Option, bool>>? filter = a=>a.IsActive;
 
-            // Construir filtros
-            if (requestDto.ModuleId.HasValue)
-            {
-                filter = CombineFilters(filter, o => o.ModuleId == requestDto.ModuleId.Value);
-            }
-
-            if (!string.IsNullOrEmpty(requestDto.ApplicationCode))
-            {
-                filter = CombineFilters(filter, o => o.Module.Application.Code == requestDto.ApplicationCode);
-            }
-
-            if (!string.IsNullOrEmpty(requestDto.Code))
-            {
-                filter = CombineFilters(filter, o => o.Code.Contains(requestDto.Code));
-            }
-
-            if (!string.IsNullOrEmpty(requestDto.Name))
-            {
-                filter = CombineFilters(filter, o => o.Name.Contains(requestDto.Name));
-            }
-
-            if (!string.IsNullOrEmpty(requestDto.HttpMethod))
-            {
-                filter = CombineFilters(filter, o => o.HttpMethod == requestDto.HttpMethod);
-            }
-
-            if (requestDto.IsActive.HasValue)
-            {
-                filter = CombineFilters(filter, o => o.IsActive == requestDto.IsActive.Value);
-            }
+           
+                filter = CombineFilters(filter, o => o.ModuleId == requestDto.ModuleId);
+         
 
             // Ordenamiento
             Func<IQueryable<Option>, IOrderedQueryable<Option>> orderBy = q => 
@@ -215,7 +189,6 @@ public class OptionService : IOptionService
                 orderBy,
                 requestDto.PageNumber,
                 requestDto.PageSize,
-                o => o.Module,
                 o => o.Module.Application);
 
             var optionDtos = _mapper.Map<List<OptionDto>>(items);
