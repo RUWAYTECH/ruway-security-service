@@ -23,7 +23,7 @@ public class UsersController : ControllerBase
     public async Task<ActionResult<PaginationResponseDto<UserDto>>> GetUsers([FromQuery] UserPaginationRequestDto paginationRequestDto)
     {
         var users = await _userService.GetPaged(paginationRequestDto);
-        return Ok(users);
+        return Ok(users.Data);
     }
 
     [HttpGet("{id}")]

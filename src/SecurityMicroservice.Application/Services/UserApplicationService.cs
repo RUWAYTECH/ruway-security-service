@@ -113,9 +113,14 @@ public class UserApplicationService : IUserApplicationService
             result.Data = _mapper.Map<UserApplicationDto>(userApplication);
 
 
-            var user = await _userRepository.GetFirstOrDefaultAsync(filter: x => x.UserId == request.UserId);
+            var user = await _userRepository.GetFirstOrDefaultAsync(filter: x => x.UserId == request.UserId && x.Status == UserStatus.Active);
             var application = await _applicationRepository.GetFirstOrDefaultAsync(filter: x => x.ApplicationId == request.ApplicationId && x.IsActive);
 
+            if (application == null)
+            {
+                throw new InvalidOperationException("La aplicación no está activa.");
+            }
+            
             await PublishEventsAsync(user.UserId, application.ApplicationId);
             if (request.RoleId != Guid.Empty)
             {

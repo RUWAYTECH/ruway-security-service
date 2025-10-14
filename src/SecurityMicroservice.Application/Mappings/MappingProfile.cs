@@ -1,6 +1,7 @@
 using AutoMapper;
 using SecurityMicroservice.Domain.Entities;
 using SecurityMicroservice.Shared.DTOs;
+using SecurityMicroservice.Shared.Request.Option;
 using SecurityMicroservice.Shared.Response.Permission;
 using SecurityMicroservice.Shared.Response.User;
 
@@ -32,27 +33,37 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.ModuleName, opt => opt.MapFrom(src => src.Option.Module.Name));
 
         CreateMap<Option, OptionDto>()
-            .ForMember(dest => dest.ApplicationCode, opt => opt.MapFrom(src => src.Module.Application.Code));
+            .ForMember(dest => dest.ModuleName, opt => opt.MapFrom(src => src.Module.Name))
+            .ForMember(dest => dest.ApplicationCode, opt => opt.MapFrom(src => src.Module.Application.Code))
+            .ForMember(dest => dest.ApplicationName, opt => opt.MapFrom(src => src.Module.Application.Name));
+
+        // Option request mappings
+        CreateMap<CreateOptionRequest, Option>();
+        CreateMap<UpdateOptionRequest, Option>()
+            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
         // UserApplication mappings
         CreateMap<UserApplication, UserApplicationDto>().AfterMap((src, dest, context) =>
         {
-            dest.FirstName = src.User.FirstName;
-            dest.LastName = src.User.LastName;
+            dest.FirstName = src.User?.FirstName;
+            dest.LastName = src.User?.LastName;
             dest.Notes = src.Notes;
-            dest.ApplicationCode = src.Application.Code;
-            dest.ApplicationName = src.Application.Name;
-            dest.UserName = src.User.UserName;
-            dest.Email = src.User.Email;
+            dest.ApplicationCode = src.Application?.Code;
+            dest.ApplicationName = src.Application?.Name;
+            dest.UserName = src.User?.UserName;
+            dest.Email = src.User?.Email;
         });
 
         // UserRole mappings
         CreateMap<UserRole, UserRoleDto>()
-            .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.User.UserName))
-            .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role.Name))
-            .ForMember(dest => dest.RoleCode, opt => opt.MapFrom(src => src.Role.Code))
-            .ForMember(dest => dest.ApplicationName, opt => opt.MapFrom(src => src.Role.Application.Name))
-            .ForMember(dest => dest.ApplicationCode, opt => opt.MapFrom(src => src.Role.Application.Code));
+        .AfterMap((src, dest, context) =>
+        {
+            dest.Username = src.User?.FirstName;
+            dest.RoleName = src.Role?.Name;
+            dest.Notes = src.Notes;
+            dest.ApplicationCode = src.Role?.Application?.Code;
+            dest.ApplicationName = src.Role?.Application?.Name;
+        });
 
         // UserPermission mappings
         CreateMap<UserPermission, UserPermissionDto>()
