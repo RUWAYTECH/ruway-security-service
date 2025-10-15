@@ -19,6 +19,7 @@ public class UserApplicationService : IUserApplicationService
     private readonly IEventPublisher _eventPublisher;
     private readonly IUserRepository _userRepository;
     private readonly IUserRoleService _userRoleService;
+    private readonly IUserRoleRepository _userRoleRepository;
 
     private readonly IApplicationRepository _applicationRepository;
 
@@ -29,7 +30,8 @@ public class UserApplicationService : IUserApplicationService
         IEventPublisher eventPublisher,
         IUserRepository userRepository,
         IApplicationRepository applicationRepository,
-        IUserRoleService userRoleService
+        IUserRoleService userRoleService,
+        IUserRoleRepository userRoleRepository
         )
     {
         _userApplicationRepository = userApplicationRepository;
@@ -38,6 +40,7 @@ public class UserApplicationService : IUserApplicationService
         _userRepository = userRepository;
         _applicationRepository = applicationRepository;
         _userRoleService = userRoleService;
+        _userRoleRepository = userRoleRepository;
     }
 
     public async Task<List<UserApplicationDto>> GetAllAsync()
@@ -121,7 +124,7 @@ public class UserApplicationService : IUserApplicationService
             {
                 throw new InvalidOperationException("La aplicación no está activa.");
             }
-            
+
             await PublishEventsAsync(user.UserId, application.ApplicationId);
             if (request.RoleId != Guid.Empty)
             {
@@ -185,7 +188,7 @@ public class UserApplicationService : IUserApplicationService
     {
         var user = await _userRepository.GetFirstOrDefaultAsync(filter: x => x.UserId == userId);
         var application = await _applicationRepository.GetFirstOrDefaultAsync(filter: x => x.ApplicationId == applicationId && x.IsActive);
-
+        var userRoles = await _userRoleRepository.GetByUserIdAsync(userId);
         var userUpdatedEvent = new UserUpdatedEvent(
             user.UserId,
             user.EmployeeId,
@@ -193,7 +196,9 @@ public class UserApplicationService : IUserApplicationService
             user.FirstName ?? "",
             user.LastName ?? "",
             user.Email ?? "",
-            ApplicationCode: application.Code ?? ""
+            ApplicationCode: application.Code ?? "",
+            RoleCodes: userRoles.Select(a => a.Role.Code ?? "").ToList().ToString(),
+            RoleNames: userRoles.Select(a => a.Role.Name ?? "").ToList().ToString()
             );
 
         await _eventPublisher.PublishAsync(userUpdatedEvent);
@@ -236,7 +241,7 @@ public class UserApplicationService : IUserApplicationService
         var response = ResponseDto.Create<PaginationResponseDto<UserApplicationDto>>();
         try
         {
-            Expression<Func<UserApplication, bool>>? filter = a=>a.IsActive;
+            Expression<Func<UserApplication, bool>>? filter = a => a.IsActive;
 
             if (requestDto.UserId.HasValue)
             {
@@ -248,7 +253,7 @@ public class UserApplicationService : IUserApplicationService
                 filter = filter.AndAlso(x => x.ApplicationId == requestDto.ApplicationId.Value);
             }
 
-          
+
 
             if (!string.IsNullOrEmpty(requestDto.Filter))
             {
