@@ -5,6 +5,7 @@ using SecurityMicroservice.Domain.Entities;
 using SecurityMicroservice.Infrastructure.IRepositories;
 using SecurityMicroservice.Shared.Common;
 using SecurityMicroservice.Shared.DTOs;
+using SecurityMicroservice.Shared.Extensions;
 using SecurityMicroservice.Shared.Request.UserApplication;
 using SecurityMicroservice.Shared.Response.Common;
 using System.Linq.Expressions;
@@ -244,44 +245,15 @@ public class UserApplicationService : IUserApplicationService
 
             if (requestDto.ApplicationId.HasValue)
             {
-                var applicationFilter = new Func<Expression<Func<UserApplication, bool>>, Expression<Func<UserApplication, bool>>>(
-                    existing => existing == null
-                        ? ua => ua.ApplicationId == requestDto.ApplicationId.Value
-                        : ua => existing.Compile()(ua) && ua.ApplicationId == requestDto.ApplicationId.Value);
-                filter = applicationFilter(filter);
+                filter = filter.AndAlso(x => x.ApplicationId == requestDto.ApplicationId.Value);
             }
 
-            if (!string.IsNullOrEmpty(requestDto.ApplicationCode))
-            {
-                var appCodeFilter = new Func<Expression<Func<UserApplication, bool>>, Expression<Func<UserApplication, bool>>>(
-                    existing => existing == null
-                        ? ua => ua.Application.Code == requestDto.ApplicationCode
-                        : ua => existing.Compile()(ua) && ua.Application.Code == requestDto.ApplicationCode);
-                filter = appCodeFilter(filter);
-            }
-
-            if (requestDto.IsActive.HasValue)
-            {
-                var activeFilter = new Func<Expression<Func<UserApplication, bool>>, Expression<Func<UserApplication, bool>>>(
-                    existing => existing == null
-                        ? ua => ua.IsActive == requestDto.IsActive.Value
-                        : ua => existing.Compile()(ua) && ua.IsActive == requestDto.IsActive.Value);
-                filter = activeFilter(filter);
-            }
+          
 
             if (!string.IsNullOrEmpty(requestDto.Filter))
             {
-                var searchFilter = requestDto.Filter.ToLower();
-                var textFilter = new Func<Expression<Func<UserApplication, bool>>, Expression<Func<UserApplication, bool>>>(
-                    existing => existing == null
-                        ? ua => ua.User.UserName.ToLower().Contains(searchFilter) ||
-                                ua.Application.Name.ToLower().Contains(searchFilter) ||
-                                ua.Application.Code.ToLower().Contains(searchFilter)
-                        : ua => existing.Compile()(ua) &&
-                                (ua.User.UserName.ToLower().Contains(searchFilter) ||
-                                 ua.Application.Name.ToLower().Contains(searchFilter) ||
-                                 ua.Application.Code.ToLower().Contains(searchFilter)));
-                filter = textFilter(filter);
+                filter = filter.AndAlso(x => x.Application.Name.ToLower().Contains(requestDto.Filter.ToLower()) ||
+                 x.Application.Code.ToLower().Contains(requestDto.Filter.ToLower()));
             }
 
             Func<IQueryable<UserApplication>, IOrderedQueryable<UserApplication>> orderBy = q => q.OrderByDescending(x => x.AssignedAt);
@@ -307,5 +279,10 @@ public class UserApplicationService : IUserApplicationService
             response = ResponseDto.Error<PaginationResponseDto<UserApplicationDto>>(ex.Message);
         }
         return response;
+    }
+
+    private Expression<Func<UserApplication, bool>> CombineFilters(Expression<Func<UserApplication, bool>> filter, Func<object, bool> value)
+    {
+        throw new NotImplementedException();
     }
 }

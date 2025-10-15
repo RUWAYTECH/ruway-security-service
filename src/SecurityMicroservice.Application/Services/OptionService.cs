@@ -5,6 +5,7 @@ using SecurityMicroservice.Domain.Entities;
 using SecurityMicroservice.Infrastructure.IRepositories;
 using SecurityMicroservice.Shared.Common;
 using SecurityMicroservice.Shared.DTOs;
+using SecurityMicroservice.Shared.Extensions;
 using SecurityMicroservice.Shared.Request.Option;
 using SecurityMicroservice.Shared.Response.Common;
 using System.Linq.Expressions;
@@ -175,7 +176,7 @@ public class OptionService : IOptionService
             Expression<Func<Option, bool>>? filter = a=>a.IsActive;
 
            
-                filter = CombineFilters(filter, o => o.ModuleId == requestDto.ModuleId);
+                filter = filter.AndAlso(o => o.ModuleId == requestDto.ModuleId);
          
 
             // Ordenamiento
@@ -210,18 +211,5 @@ public class OptionService : IOptionService
         return result;
     }
 
-    private static Expression<Func<Option, bool>>? CombineFilters(
-        Expression<Func<Option, bool>>? existing,
-        Expression<Func<Option, bool>> newFilter)
-    {
-        if (existing == null)
-            return newFilter;
-
-        var parameter = Expression.Parameter(typeof(Option), "o");
-        var combined = Expression.AndAlso(
-            Expression.Invoke(existing, parameter),
-            Expression.Invoke(newFilter, parameter));
-
-        return Expression.Lambda<Func<Option, bool>>(combined, parameter);
-    }
+    
 }
