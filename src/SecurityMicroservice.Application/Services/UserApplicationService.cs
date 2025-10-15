@@ -50,7 +50,7 @@ public class UserApplicationService : IUserApplicationService
         var result = ResponseDto.Create<UserApplicationDto>();
         try
         {
-            var userApplication = await _userApplicationRepository.GetFirstOrDefaultAsync(filter: x => x.UserId == userId && x.ApplicationId == applicationId);
+            var userApplication = await _userApplicationRepository.GetFirstOrDefaultAsync(filter: x => x.UserId == userId && x.ApplicationId == applicationId && x.IsActive);
             result.Data = userApplication != null ? _mapper.Map<UserApplicationDto>(userApplication) : null;
         }
         catch (Exception ex)
@@ -187,7 +187,7 @@ public class UserApplicationService : IUserApplicationService
 
         var userUpdatedEvent = new UserUpdatedEvent(
             user.UserId,
-            user.EmployeeId.Value,
+            user.EmployeeId,
             user.UserName,
             user.FirstName ?? "",
             user.LastName ?? "",
@@ -220,6 +220,8 @@ public class UserApplicationService : IUserApplicationService
                 );
 
             await _eventPublisher.PublishAsync(userUpdatedEvent);
+
+            await _userRoleService.DeleteByUserAndApplicationAsync(userId, application.ApplicationId);
         }
         catch (Exception ex)
         {
@@ -233,7 +235,7 @@ public class UserApplicationService : IUserApplicationService
         var response = ResponseDto.Create<PaginationResponseDto<UserApplicationDto>>();
         try
         {
-            Expression<Func<UserApplication, bool>>? filter = null;
+            Expression<Func<UserApplication, bool>>? filter = a=>a.IsActive;
 
             if (requestDto.UserId.HasValue)
             {

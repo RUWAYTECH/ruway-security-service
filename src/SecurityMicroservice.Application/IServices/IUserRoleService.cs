@@ -15,5 +15,6 @@ namespace SecurityMicroservice.Application.IServices
         Task<ResponseDto<UserRoleDto>> UpdateAsync(Guid userId, Guid roleId, UpdateUserRoleRequest request);
         Task<ResponseDto> DeleteAsync(Guid userId, Guid roleId);
         Task<ResponseDto<PaginationResponseDto<UserRoleDto>>> GetPagedAsync(UserRolePaginationRequestDto requestDto);
+        Task<ResponseDto> DeleteByUserAndApplicationAsync(Guid userId, Guid applicationId);
     }
 }

@@ -288,4 +288,27 @@ public class UserRoleService : IUserRoleService
         }
         return response;
     }
+
+    public async Task<ResponseDto> DeleteByUserAndApplicationAsync(Guid userId, Guid applicationId)
+    {
+         var result = ResponseDto.Create();
+        try
+        {
+            var userRole = await _userRoleRepository.GetFirstOrDefaultAsync(a=>a.UserId == userId && a.Role.ApplicationId == applicationId);
+            if (userRole == null)
+            {
+                result = ResponseDto.Error("No se pudo encontrar la asignación de rol para el usuario.");
+                return result;
+            }
+
+            _userRoleRepository.Delete(userRole);
+
+            await PublishEventsAsync(userId, userRole.RoleId, UserActions.Deleted);
+        }
+        catch (Exception ex)
+        {
+            result = ResponseDto.Error(ex.Message);
+        }
+        return result;
+    }
 }
