@@ -123,7 +123,7 @@ public class UserRepository : EFRepository<User>, IUserRepository
             .Include(ur => ur.Role)
                 .ThenInclude(r => r.Application)
             .Where(ur => ur.Role.IsActive && ur.Role.Application.IsActive)
-            .Select(ur =>$"{ur.Role.Application.Code}_{ur.Role.Code}_{ur.Role.Name}")
+            .Select(ur =>$"{ur.Role.Application.Code}_{ur.Role.Code}:{ur.Role.Name}")
             .ToListAsync();
 
         return userRoles;

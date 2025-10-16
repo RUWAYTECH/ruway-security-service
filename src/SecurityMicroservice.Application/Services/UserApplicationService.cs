@@ -245,7 +245,7 @@ public class UserApplicationService : IUserApplicationService
 
             if (requestDto.UserId.HasValue)
             {
-                filter = ua => ua.UserId == requestDto.UserId.Value;
+                filter = ua => ua.UserId == requestDto.UserId.Value && ua.IsActive;
             }
 
             if (requestDto.ApplicationId.HasValue)
