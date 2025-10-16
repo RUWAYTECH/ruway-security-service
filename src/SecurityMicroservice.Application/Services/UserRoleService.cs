@@ -166,7 +166,7 @@ public class UserRoleService : IUserRoleService
         var userRoles = await _userRoleRepository.GetByUserIdAsync(userId);
 
         var userRoleAssignedEvent = new UserRoleAssignedEvent(
-            user.UserId,
+            UserId: user.UserId,
             RoleCode: userRoles.Select(a=>a.Role.Code ?? "").ToList().ToString(),
             RoleName: userRoles.Select(a=>a.Role.Name ?? "").ToList().ToString(),
             ApplicationCode: role.Application.Code ?? "",

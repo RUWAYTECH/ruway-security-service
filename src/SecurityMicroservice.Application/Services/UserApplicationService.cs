@@ -99,10 +99,32 @@ public class UserApplicationService : IUserApplicationService
         var result = ResponseDto.Create<UserApplicationDto>();
         try
         {
-            var exists = await _userApplicationRepository.ExistsAsync(request.UserId, request.ApplicationId);
-            if (exists)
+            var exists = await _userApplicationRepository.GetFirstOrDefaultAsync(a => a.UserId == request.UserId && a.ApplicationId == request.ApplicationId);
+            if (exists != null)
             {
-                throw new InvalidOperationException("El usuario ya tiene asignada esta aplicación.");
+                if (exists.IsActive)
+                {
+                    throw new InvalidOperationException("El usuario ya tiene asignada esta aplicación.");
+                }
+                else
+                {
+                    exists.IsActive = true;
+                    exists.RevokedAt = null;
+                    exists.UpdatedAt = DateTime.UtcNow;
+                    _userApplicationRepository.Update(exists);
+                    result.Data = _mapper.Map<UserApplicationDto>(exists);
+                    if (request.RoleId != Guid.Empty)
+                    {
+                        var userRoles = await _userRoleService.CreateAsync(new Shared.Request.UserRole.CreateUserRoleRequest
+                        {
+                            UserId = request.UserId,
+                            RoleId = request.RoleId
+                        });
+                        result.Messages.AddRange(userRoles.Messages);
+                    }
+                    await PublishEventsAsync(exists.UserId, exists.ApplicationId);
+                    return result;
+                }
             }
 
             var userApplication = new UserApplication
@@ -125,7 +147,7 @@ public class UserApplicationService : IUserApplicationService
                 throw new InvalidOperationException("La aplicación no está activa.");
             }
 
-            await PublishEventsAsync(user.UserId, application.ApplicationId);
+
             if (request.RoleId != Guid.Empty)
             {
                 var userRoles = await _userRoleService.CreateAsync(new Shared.Request.UserRole.CreateUserRoleRequest
@@ -135,7 +157,7 @@ public class UserApplicationService : IUserApplicationService
                 });
                 result.Messages.AddRange(userRoles.Messages);
             }
-
+            await PublishEventsAsync(user.UserId, application.ApplicationId);
         }
         catch (Exception ex)
         {
@@ -144,6 +166,8 @@ public class UserApplicationService : IUserApplicationService
         return result;
     }
 
+    //TODO: No se usa por el momento
+    [Obsolete]
     public async Task<ResponseDto<UserApplicationDto>> UpdateAsync(Guid userId, Guid applicationId, UpdateUserApplicationRequest request)
     {
         var result = ResponseDto.Create<UserApplicationDto>();
@@ -190,15 +214,15 @@ public class UserApplicationService : IUserApplicationService
         var application = await _applicationRepository.GetFirstOrDefaultAsync(filter: x => x.ApplicationId == applicationId && x.IsActive);
         var userRoles = await _userRoleRepository.GetByUserIdAsync(userId);
         var userUpdatedEvent = new UserUpdatedEvent(
-            user.UserId,
-            user.EmployeeId,
-            user.UserName,
-            user.FirstName ?? "",
-            user.LastName ?? "",
-            user.Email ?? "",
+            UserId: user.UserId,
+            EmployeeId: user.EmployeeId,
+            UserName: user.UserName,
+            FirstName: user.FirstName ?? "",
+            LastName: user.LastName ?? "",
+            Email: user.Email ?? "",
             ApplicationCode: application.Code ?? "",
-            RoleCodes: userRoles.Select(a => a.Role.Code ?? "").ToList().ToString(),
-            RoleNames: userRoles.Select(a => a.Role.Name ?? "").ToList().ToString()
+            RoleCodes: string.Join(",", userRoles.Select(a => a.Role.Code ?? "")),
+            RoleNames: string.Join(",", userRoles.Select(a => a.Role.Name ?? ""))
             );
 
         await _eventPublisher.PublishAsync(userUpdatedEvent);

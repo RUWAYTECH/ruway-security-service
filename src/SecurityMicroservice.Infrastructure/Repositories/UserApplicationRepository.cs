@@ -28,6 +28,6 @@ public class UserApplicationRepository : EFRepository<UserApplication>, IUserApp
 
     public async Task<bool> ExistsAsync(Guid userId, Guid applicationId)
     {
-        return await AnyAsync(ua => ua.UserId == userId && ua.User.Status == UserStatus.Active && ua.ApplicationId == applicationId && ua.IsActive);
+        return await AnyAsync(ua => ua.UserId == userId && ua.User.Status == UserStatus.Active && ua.ApplicationId == applicationId);
     }
 }
