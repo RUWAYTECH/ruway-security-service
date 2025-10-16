@@ -13,6 +13,6 @@ namespace SecurityMicroservice.Application.IServices
         Task<ResponseDto<RoleDto>> CreateAsync(CreateRoleRequest request);
         Task<ResponseDto<RoleDto>> UpdateAsync(Guid roleId, UpdateRoleRequest request);
         Task<ResponseDto> DeleteAsync(Guid roleId);
-        Task<ResponseDto<PaginationResponseDto<RoleDto>>> GetPagedAsync(PaginationRequestDto requestDto);
+        Task<ResponseDto<PaginationResponseDto<RoleDto>>> GetPagedAsync(RoleFilterRequestDto requestDto);
     }
 }

@@ -4,6 +4,7 @@ using SecurityMicroservice.Domain.Entities;
 using SecurityMicroservice.Infrastructure.IRepositories;
 using SecurityMicroservice.Shared.Common;
 using SecurityMicroservice.Shared.DTOs;
+using SecurityMicroservice.Shared.Extensions;
 using SecurityMicroservice.Shared.Response.Common;
 using System.Linq.Expressions;
 
@@ -193,22 +194,26 @@ public class ModuleService : IModuleService
         return result;
     }
 
-    public async Task<ResponseDto<PaginationResponseDto<ModuleManagementDto>>> GetPagedAsync(PaginationRequestDto requestDto)
+    public async Task<ResponseDto<PaginationResponseDto<ModuleManagementDto>>> GetPagedAsync(ModuleFilterRequestDto requestDto)
     {
         var response = ResponseDto.Create<PaginationResponseDto<ModuleManagementDto>>();
         try
         {
             Expression<Func<Domain.Entities.Module, bool>>? filter = null;
 
+            if (requestDto.ApplicationId != Guid.Empty)
+            {
+                filter = filter.AndAlso(m => m.ApplicationId == requestDto.ApplicationId);
+            }
             // Filtro de búsqueda por texto
             if (!string.IsNullOrEmpty(requestDto.Filter))
             {
                 var searchFilter = requestDto.Filter.ToLower();
-                filter = module => module.Name.ToLower().Contains(searchFilter) ||
+                filter = filter.AndAlso(module => module.Name.ToLower().Contains(searchFilter) ||
                                module.Code.ToLower().Contains(searchFilter) ||
                                module.Description.ToLower().Contains(searchFilter) ||
                                module.Application.Name.ToLower().Contains(searchFilter) ||
-                               module.Application.Code.ToLower().Contains(searchFilter);
+                               module.Application.Code.ToLower().Contains(searchFilter));
             }
 
             // Ordenamiento por defecto: por aplicación y luego por orden

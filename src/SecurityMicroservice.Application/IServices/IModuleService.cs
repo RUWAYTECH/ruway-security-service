@@ -13,6 +13,6 @@ namespace SecurityMicroservice.Application.IServices
         Task<ResponseDto<ModuleManagementDto>> CreateAsync(CreateModuleRequest request);
         Task<ResponseDto<ModuleManagementDto>> UpdateAsync(Guid moduleId, UpdateModuleRequest request);
         Task<ResponseDto> DeleteAsync(Guid moduleId);
-        Task<ResponseDto<PaginationResponseDto<ModuleManagementDto>>> GetPagedAsync(PaginationRequestDto requestDto);
+        Task<ResponseDto<PaginationResponseDto<ModuleManagementDto>>> GetPagedAsync(ModuleFilterRequestDto requestDto);
     }
 }

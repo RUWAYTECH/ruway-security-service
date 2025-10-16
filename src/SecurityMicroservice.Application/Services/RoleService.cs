@@ -4,6 +4,7 @@ using SecurityMicroservice.Domain.Entities;
 using SecurityMicroservice.Infrastructure.IRepositories;
 using SecurityMicroservice.Shared.Common;
 using SecurityMicroservice.Shared.DTOs;
+using SecurityMicroservice.Shared.Extensions;
 using SecurityMicroservice.Shared.Response.Common;
 using System.Linq.Expressions;
 
@@ -190,12 +191,16 @@ public class RoleService : IRoleService
         return result;
     }
 
-    public async Task<ResponseDto<PaginationResponseDto<RoleDto>>> GetPagedAsync(PaginationRequestDto requestDto)
+    public async Task<ResponseDto<PaginationResponseDto<RoleDto>>> GetPagedAsync(RoleFilterRequestDto requestDto)
     {
         var response = ResponseDto.Create<PaginationResponseDto<RoleDto>>();
         try
         {
-            Expression<Func<Domain.Entities.Role, bool>>? filter = null;
+            Expression<Func<Domain.Entities.Role, bool>>? filter = a => a.IsActive;
+            if (requestDto.ApplicationId != Guid.Empty)
+            {
+                filter = filter.AndAlso(r => r.ApplicationId == requestDto.ApplicationId);
+            }
 
             // Filtro de búsqueda por texto
             if (!string.IsNullOrEmpty(requestDto.Filter))

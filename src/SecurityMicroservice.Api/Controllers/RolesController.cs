@@ -23,7 +23,7 @@ public class RolesController : ControllerBase
     /// </summary>
     [HttpGet]
     public async Task<ActionResult<PaginationResponseDto<RoleDto>>> GetRoles(
-        [FromQuery] PaginationRequestDto paginationRequestDto)
+        [FromQuery] RoleFilterRequestDto paginationRequestDto)
     {
         var result = await _roleService.GetPagedAsync(paginationRequestDto);
         if (!result.IsValid)

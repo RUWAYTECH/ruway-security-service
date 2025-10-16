@@ -23,7 +23,7 @@ public class ModulesController : ControllerBase
     /// </summary>
     [HttpGet]
     public async Task<ActionResult<PaginationResponseDto<ModuleManagementDto>>> GetModules(
-        [FromQuery] PaginationRequestDto paginationRequestDto)
+        [FromQuery] ModuleFilterRequestDto paginationRequestDto)
     {
         var result = await _moduleService.GetPagedAsync(paginationRequestDto);
         if (!result.IsValid)
