@@ -58,7 +58,8 @@ namespace SecurityMicroservice.Application.Services
                     filter: filter,
                     orderBy: orderBy,
                     pageNumber: paginationRequestDto.PageNumber,
-                    pageSize: paginationRequestDto.PageSize
+                    pageSize: paginationRequestDto.PageSize,
+                    includeProperties: [a=>a.Option, b=>b.Role, c=>c.Option.Module]
                 );
 
                 result.Data = new PaginationResponseDto<PermissionResponseDto>

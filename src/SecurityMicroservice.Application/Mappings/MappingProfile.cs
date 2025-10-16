@@ -30,7 +30,9 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.OptionRoute, opt => opt.MapFrom(src => src.Option.Route))
             .ForMember(dest => dest.HttpMethod, opt => opt.MapFrom(src => src.Option.HttpMethod))
             .ForMember(dest => dest.ModuleCode, opt => opt.MapFrom(src => src.Option.Module.Code))
-            .ForMember(dest => dest.ModuleName, opt => opt.MapFrom(src => src.Option.Module.Name));
+            .ForMember(dest => dest.ModuleName, opt => opt.MapFrom(src => src.Option.Module.Name))
+            .ForMember(dest => dest.OptionId, opt => opt.MapFrom(src => src.Option.OptionId))
+            .ForMember(dest => dest.ModuleId, opt => opt.MapFrom(src => src.Option.Module.ModuleId));
 
         CreateMap<Option, OptionDto>()
             .ForMember(dest => dest.ModuleName, opt => opt.MapFrom(src => src.Module.Name))
