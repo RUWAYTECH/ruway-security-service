@@ -13,6 +13,7 @@ public class Module : BaseEntity
     public int Order { get; set; }
     public Guid ApplicationId { get; set; }
     
+    public bool IsActive { get; set; }
     // Navigation properties
     public Application Application { get; set; } = null!;
     public ICollection<Option> Options { get; set; } = new List<Option>();

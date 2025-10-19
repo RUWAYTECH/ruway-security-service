@@ -6,7 +6,6 @@ namespace SecurityMicroservice.Application.IServices
 {
     public interface IModuleService
     {
-        Task<List<ModuleManagementDto>> GetAllAsync();
         Task<ResponseDto<ModuleManagementDto>> GetByIdAsync(Guid moduleId);
         Task<ResponseDto<ModuleManagementDto>> GetByCodeAsync(string code, Guid applicationId);
         Task<List<ModuleManagementDto>> GetByApplicationIdAsync(Guid applicationId);

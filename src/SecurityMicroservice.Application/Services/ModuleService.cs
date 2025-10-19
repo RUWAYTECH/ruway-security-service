@@ -6,6 +6,7 @@ using SecurityMicroservice.Shared.Common;
 using SecurityMicroservice.Shared.DTOs;
 using SecurityMicroservice.Shared.Extensions;
 using SecurityMicroservice.Shared.Response.Common;
+using System.Data.Common;
 using System.Linq.Expressions;
 
 namespace SecurityMicroservice.Application.Services;
@@ -24,12 +25,6 @@ public class ModuleService : IModuleService
         _moduleRepository = moduleRepository;
         _applicationRepository = applicationRepository;
         _mapper = mapper;
-    }
-
-    public async Task<List<ModuleManagementDto>> GetAllAsync()
-    {
-        var modules = await _moduleRepository.GetAllAsync();
-        return _mapper.Map<List<ModuleManagementDto>>(modules);
     }
 
     public async Task<ResponseDto<ModuleManagementDto>> GetByIdAsync(Guid moduleId)
@@ -123,7 +118,7 @@ public class ModuleService : IModuleService
         var result = ResponseDto.Create<ModuleManagementDto>();
         try
         {
-            var module = await _moduleRepository.GetByKeyAsync(moduleId);
+            var module = await _moduleRepository.GetFirstOrDefaultAsync(a => a.ModuleId == moduleId && a.IsActive);
             if (module == null)
             {
                 return ResponseDto.Error<ModuleManagementDto>("Módulo no encontrado.");
@@ -160,6 +155,14 @@ public class ModuleService : IModuleService
             {
                 module.Order = request.Order.Value;
             }
+            if (request.IsActive.HasValue)
+            {
+                module.IsActive = request.IsActive.Value;
+            }
+            else
+            {
+                module.IsActive = module.IsActive;
+            }
 
             module.UpdatedAt = DateTime.UtcNow;
 
@@ -178,7 +181,7 @@ public class ModuleService : IModuleService
         var result = ResponseDto.Create();
         try
         {
-            var module = await _moduleRepository.GetByKeyAsync(moduleId);
+            var module = await _moduleRepository.GetFirstOrDefaultAsync(a => a.ModuleId == moduleId && a.IsActive);
             if (module == null)
             {
                 return ResponseDto.Error("Módulo no encontrado.");
@@ -199,7 +202,7 @@ public class ModuleService : IModuleService
         var response = ResponseDto.Create<PaginationResponseDto<ModuleManagementDto>>();
         try
         {
-            Expression<Func<Domain.Entities.Module, bool>>? filter = null;
+            Expression<Func<Domain.Entities.Module, bool>>? filter = a => a.IsActive;
 
             if (requestDto.ApplicationId != Guid.Empty)
             {
@@ -217,7 +220,7 @@ public class ModuleService : IModuleService
             }
 
             // Ordenamiento por defecto: por aplicación y luego por orden
-            Func<IQueryable<Domain.Entities.Module>, IOrderedQueryable<Domain.Entities.Module>> orderBy = 
+            Func<IQueryable<Domain.Entities.Module>, IOrderedQueryable<Domain.Entities.Module>> orderBy =
                 q => q.OrderBy(x => x.Application.Name).ThenBy(x => x.Order);
 
             var (items, totalRows) = await _moduleRepository.GetPagedAsync(

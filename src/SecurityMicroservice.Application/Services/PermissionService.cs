@@ -128,7 +128,7 @@ namespace SecurityMicroservice.Application.Services
             var result = ResponseDto.Create<PermissionResponseDto>();
             try
             {
-                var entity = await _permissionRepository.GetFirstOrDefaultAsync(filter: x => x.PermissionId == (Guid)id && x.IsActive);
+                var entity = await _permissionRepository.GetFirstOrDefaultAsync(filter: x => x.PermissionId == (Guid)id && x.IsActive, includeProperties: [p => p.Option.Module, p => p.Role]);
                 if (entity == null)
                 {
                     result = ResponseDto.Error<PermissionResponseDto>("No se pudo encontrar el permiso");

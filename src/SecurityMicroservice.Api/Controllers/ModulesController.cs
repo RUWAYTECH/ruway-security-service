@@ -33,16 +33,7 @@ public class ModulesController : ControllerBase
         return Ok(result.Data);
     }
 
-    /// <summary>
-    /// Obtiene todos los módulos (sin paginación)
-    /// </summary>
-    [HttpGet("all")]
-    public async Task<ActionResult<List<ModuleManagementDto>>> GetAllModules()
-    {
-        var modules = await _moduleService.GetAllAsync();
-        return Ok(modules);
-    }
-
+ 
     /// <summary>
     /// Obtiene un módulo por ID
     /// </summary>
