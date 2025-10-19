@@ -100,7 +100,8 @@ public class ModuleService : IModuleService
                 Description = request.Description,
                 Icon = request.Icon,
                 Order = request.Order,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true
             };
 
             _moduleRepository.Insert(module);
@@ -202,7 +203,7 @@ public class ModuleService : IModuleService
         var response = ResponseDto.Create<PaginationResponseDto<ModuleManagementDto>>();
         try
         {
-            Expression<Func<Domain.Entities.Module, bool>>? filter = a => a.IsActive;
+            Expression<Func<Domain.Entities.Module, bool>>? filter =  null;
 
             if (requestDto.ApplicationId != Guid.Empty)
             {
