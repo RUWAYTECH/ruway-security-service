@@ -37,7 +37,8 @@ public class MappingProfile : Profile
         CreateMap<Option, OptionDto>()
             .ForMember(dest => dest.ModuleName, opt => opt.MapFrom(src => src.Module.Name))
             .ForMember(dest => dest.ApplicationCode, opt => opt.MapFrom(src => src.Module.Application.Code))
-            .ForMember(dest => dest.ApplicationName, opt => opt.MapFrom(src => src.Module.Application.Name));
+            .ForMember(dest => dest.ApplicationName, opt => opt.MapFrom(src => src.Module.Application.Name))
+            .ForMember(dest => dest.CreationDate, opt => opt.MapFrom(src => src.CreatedAt));
 
         // Option request mappings
         CreateMap<CreateOptionRequest, Option>();
