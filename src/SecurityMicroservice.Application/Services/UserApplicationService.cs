@@ -155,7 +155,10 @@ public class UserApplicationService : IUserApplicationService
 
             if (request.RoleIds != null && request.RoleIds.Count > 0)
             {
-                await _userRoleService.DeleteByUserAndApplicationAsync(exists.UserId, exists.ApplicationId);
+                if(exists!=null) {
+                    await _userRoleService.DeleteByUserAndApplicationAsync(exists.UserId, exists.ApplicationId);
+                }
+               
                 foreach (var roleId in request.RoleIds)
                 {
                     var userRoles = await _userRoleService.CreateAsync(new Shared.Request.UserRole.CreateUserRoleRequest
