@@ -18,4 +18,6 @@ public class UserApplicationDto
     public string Email { get; set; } = string.Empty;
     public string ApplicationName { get; set; } = string.Empty;
     public string ApplicationCode { get; set; } = string.Empty;
+
+    public List<RoleDto> Roles { get; set; } = new();
 }

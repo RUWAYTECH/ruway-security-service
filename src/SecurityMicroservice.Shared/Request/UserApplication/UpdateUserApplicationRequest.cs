@@ -8,4 +8,6 @@ public class UpdateUserApplicationRequest
     
     [StringLength(500)]
     public string? Notes { get; set; }
+
+    public List<Guid> RoleIds { get; set; }
 }

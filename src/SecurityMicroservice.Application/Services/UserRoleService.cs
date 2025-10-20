@@ -16,23 +16,14 @@ namespace SecurityMicroservice.Application.Services;
 public class UserRoleService : IUserRoleService
 {
     private readonly IUserRoleRepository _userRoleRepository;
-    private readonly IRoleRepository _roleRepository;
     private readonly IMapper _mapper;
-    private readonly IEventPublisher _eventPublisher;
-    private readonly IUserRepository _userRepository;
 
     public UserRoleService(
         IUserRoleRepository userRoleRepository,
-        IRoleRepository roleRepository,
-        IMapper mapper,
-        IEventPublisher eventPublisher,
-        IUserRepository userRepository)
+        IMapper mapper)
     {
         _userRoleRepository = userRoleRepository;
-        _roleRepository = roleRepository;
         _mapper = mapper;
-        _eventPublisher = eventPublisher;
-        _userRepository = userRepository;
     }
 
     public async Task<List<UserRoleDto>> GetAllAsync()
@@ -116,8 +107,6 @@ public class UserRoleService : IUserRoleService
 
             _userRoleRepository.Insert(userRole);
             result.Data = _mapper.Map<UserRoleDto>(userRole);
-
-            await PublishEventsAsync(userRole.UserId, userRole.RoleId, UserActions.Created);
             
         }
         catch (Exception ex)
@@ -150,7 +139,7 @@ public class UserRoleService : IUserRoleService
             _userRoleRepository.Update(userRole);
             result.Data = _mapper.Map<UserRoleDto>(userRole);
 
-            await PublishEventsAsync(userId, roleId, UserActions.Updated);
+  
         }
         catch (Exception ex)
         {
@@ -159,22 +148,6 @@ public class UserRoleService : IUserRoleService
         return result;
     }
 
-    private async Task PublishEventsAsync(Guid userId, Guid roleId, UserActions action)
-    {
-        var user = await _userRepository.GetFirstOrDefaultAsync(filter: x => x.UserId == userId);
-        var role = await _roleRepository.GetFirstOrDefaultAsync(filter: x => x.RoleId == roleId, includeProperties: [r => r.Application]);
-        var userRoles = await _userRoleRepository.GetByUserIdAsync(userId);
-
-        var userRoleAssignedEvent = new UserRoleAssignedEvent(
-            UserId: user.UserId,
-            RoleCode: userRoles.Select(a=>a.Role.Code ?? "").ToList().ToString(),
-            RoleName: userRoles.Select(a=>a.Role.Name ?? "").ToList().ToString(),
-            ApplicationCode: role.Application.Code ?? "",
-            Actions: action
-            );
-
-        await _eventPublisher.PublishAsync(userRoleAssignedEvent);
-    }
 
     public async Task<ResponseDto> DeleteAsync(Guid userId, Guid roleId)
     {
@@ -189,8 +162,6 @@ public class UserRoleService : IUserRoleService
             }
 
             _userRoleRepository.Delete(userId, roleId);
-
-            await PublishEventsAsync(userId, roleId, UserActions.Deleted);
         }
         catch (Exception ex)
         {
@@ -294,18 +265,18 @@ public class UserRoleService : IUserRoleService
          var result = ResponseDto.Create();
         try
         {
-            var userRole = await _userRoleRepository.GetFirstOrDefaultAsync(a=>a.UserId == userId && a.Role.ApplicationId == applicationId);
+            var userRole = await _userRoleRepository.GetAsync(a=>a.UserId == userId && a.Role.ApplicationId == applicationId);
             if (userRole == null)
             {
                 result = ResponseDto.Error("No se pudo encontrar la asignación de rol para el usuario.");
                 return result;
             }
-
-            _userRoleRepository.Delete(userRole);
-
-            await PublishEventsAsync(userId, userRole.RoleId, UserActions.Deleted);
+            foreach (var ur in userRole)
+            {
+                _userRoleRepository.Delete(ur);
+            }
         }
-        catch (Exception ex)
+        catch (Exception ex) 
         {
             result = ResponseDto.Error(ex.Message);
         }

@@ -54,6 +54,9 @@ public class MappingProfile : Profile
             dest.ApplicationName = src.Application?.Name;
             dest.UserName = src.User?.UserName;
             dest.Email = src.User?.Email;
+            dest.Roles = src.User?.UserRoles
+                .Where(ur => ur.Role.ApplicationId == src.ApplicationId)
+                .Select(ur => context.Mapper.Map<RoleDto>(ur.Role)).ToList() ?? new List<RoleDto>();
         });
 
         // UserRole mappings

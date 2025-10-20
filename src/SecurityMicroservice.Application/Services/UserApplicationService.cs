@@ -111,16 +111,21 @@ public class UserApplicationService : IUserApplicationService
                     exists.IsActive = true;
                     exists.RevokedAt = null;
                     exists.UpdatedAt = DateTime.UtcNow;
+
                     _userApplicationRepository.Update(exists);
                     result.Data = _mapper.Map<UserApplicationDto>(exists);
-                    if (request.RoleId != Guid.Empty)
+                    if (request.RoleIds != null && request.RoleIds.Count > 0)
                     {
-                        var userRoles = await _userRoleService.CreateAsync(new Shared.Request.UserRole.CreateUserRoleRequest
+                        await _userRoleService.DeleteByUserAndApplicationAsync(exists.UserId, exists.ApplicationId);
+                        foreach (var roleId in request.RoleIds)
                         {
-                            UserId = request.UserId,
-                            RoleId = request.RoleId
-                        });
-                        result.Messages.AddRange(userRoles.Messages);
+                            var userRoles = await _userRoleService.CreateAsync(new Shared.Request.UserRole.CreateUserRoleRequest
+                            {
+                                UserId = request.UserId,
+                                RoleId = roleId
+                            });
+                            result.Messages.AddRange(userRoles.Messages);
+                        }
                     }
                     await PublishEventsAsync(exists.UserId, exists.ApplicationId);
                     return result;
@@ -148,14 +153,18 @@ public class UserApplicationService : IUserApplicationService
             }
 
 
-            if (request.RoleId != Guid.Empty)
+            if (request.RoleIds != null && request.RoleIds.Count > 0)
             {
-                var userRoles = await _userRoleService.CreateAsync(new Shared.Request.UserRole.CreateUserRoleRequest
+                await _userRoleService.DeleteByUserAndApplicationAsync(exists.UserId, exists.ApplicationId);
+                foreach (var roleId in request.RoleIds)
                 {
-                    UserId = request.UserId,
-                    RoleId = request.RoleId
-                });
-                result.Messages.AddRange(userRoles.Messages);
+                    var userRoles = await _userRoleService.CreateAsync(new Shared.Request.UserRole.CreateUserRoleRequest
+                    {
+                        UserId = request.UserId,
+                        RoleId = roleId
+                    });
+                    result.Messages.AddRange(userRoles.Messages);
+                }
             }
             await PublishEventsAsync(user.UserId, application.ApplicationId);
         }
@@ -166,8 +175,7 @@ public class UserApplicationService : IUserApplicationService
         return result;
     }
 
-    //TODO: No se usa por el momento
-    [Obsolete]
+
     public async Task<ResponseDto<UserApplicationDto>> UpdateAsync(Guid userId, Guid applicationId, UpdateUserApplicationRequest request)
     {
         var result = ResponseDto.Create<UserApplicationDto>();
@@ -198,6 +206,20 @@ public class UserApplicationService : IUserApplicationService
 
             _userApplicationRepository.Update(userApplication);
             result.Data = _mapper.Map<UserApplicationDto>(userApplication);
+
+            if (request.RoleIds != null && request.RoleIds.Count > 0)
+            {
+                await _userRoleService.DeleteByUserAndApplicationAsync(userApplication.UserId, userApplication.ApplicationId);
+                foreach (var roleId in request.RoleIds)
+                {
+                    var userRoles = await _userRoleService.CreateAsync(new Shared.Request.UserRole.CreateUserRoleRequest
+                    {
+                        UserId = userApplication.UserId,
+                        RoleId = roleId
+                    });
+                    result.Messages.AddRange(userRoles.Messages);
+                }
+            }
 
             await PublishEventsAsync(userId, applicationId);
         }
@@ -249,9 +271,9 @@ public class UserApplicationService : IUserApplicationService
                 ApplicationCode: application.Code ?? ""
                 );
 
+            await _userRoleService.DeleteByUserAndApplicationAsync(userId, application.ApplicationId);
             await _eventPublisher.PublishAsync(userUpdatedEvent);
 
-            await _userRoleService.DeleteByUserAndApplicationAsync(userId, application.ApplicationId);
         }
         catch (Exception ex)
         {
@@ -287,12 +309,11 @@ public class UserApplicationService : IUserApplicationService
 
             Func<IQueryable<UserApplication>, IOrderedQueryable<UserApplication>> orderBy = q => q.OrderByDescending(x => x.AssignedAt);
 
-            var (items, totalRows) = await _userApplicationRepository.GetPagedAsync(
+            var (items, totalRows) = await _userApplicationRepository.GetUserApplicationPagedAsync(
                 filter: filter,
                 orderBy: orderBy,
                 pageNumber: requestDto.PageNumber,
-                pageSize: requestDto.PageSize,
-                includeProperties: [x => x.User, y => y.Application]
+                pageSize: requestDto.PageSize
             );
 
             response.Data = new PaginationResponseDto<UserApplicationDto>

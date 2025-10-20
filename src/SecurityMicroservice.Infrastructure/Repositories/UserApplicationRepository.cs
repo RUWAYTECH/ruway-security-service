@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
 using SecurityMicroservice.Domain.Entities;
 using SecurityMicroservice.Infrastructure.Data;
 using SecurityMicroservice.Infrastructure.IRepositories;
@@ -30,4 +32,36 @@ public class UserApplicationRepository : EFRepository<UserApplication>, IUserApp
     {
         return await AnyAsync(ua => ua.UserId == userId && ua.User.Status == UserStatus.Active && ua.ApplicationId == applicationId);
     }
+
+    public async Task<(List<UserApplication> Items, int TotalRows)> GetUserApplicationPagedAsync(
+           Expression<Func<UserApplication, bool>> filter = null,
+           Func<IQueryable<UserApplication>, IOrderedQueryable<UserApplication>> orderBy = null,
+           int pageNumber = 0,
+           int pageSize = 0
+    )
+    {
+        IQueryable<UserApplication> query = Db.UserApplications
+                .Include(u => u.User)
+                .Include(u => u.Application)
+                .Include(u => u.User.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                    .ThenInclude(ap => ap.Application);
+
+
+        if (filter != null)
+            query = query.Where(filter);
+
+        var totalRows = await query.CountAsync();
+
+        if (orderBy != null)
+            query = orderBy(query);
+
+        if (pageNumber > 0 && pageSize > 0)
+            query = query.Skip((pageNumber - 1) * pageSize).Take(pageSize);
+
+        var items = await query.ToListAsync();
+
+        return (items, totalRows);
+    }
+
 }
