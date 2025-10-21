@@ -63,7 +63,7 @@ public class ModulesController : ControllerBase
         var result = await _moduleService.GetByCodeAsync(code, applicationId);
         if (!result.IsValid)
         {
-            return BadRequest(result.Messages);
+            return BadRequest(result);
         }
         
         if (result.Data == null)
@@ -98,7 +98,7 @@ public class ModulesController : ControllerBase
         var result = await _moduleService.CreateAsync(request);
         if (!result.IsValid)
         {
-            return BadRequest(result.Messages);
+            return BadRequest(result);
         }
 
         return CreatedAtAction(
@@ -123,7 +123,7 @@ public class ModulesController : ControllerBase
         var result = await _moduleService.UpdateAsync(moduleId, request);
         if (!result.IsValid)
         {
-            return BadRequest(result.Messages);
+            return BadRequest(result);
         }
 
         if (result.Data == null)
@@ -143,7 +143,7 @@ public class ModulesController : ControllerBase
         var result = await _moduleService.DeleteAsync(moduleId);
         if (!result.IsValid)
         {
-            return BadRequest(result.Messages);
+            return BadRequest(result);
         }
 
         return Ok(new { Message = "Módulo eliminado correctamente." });

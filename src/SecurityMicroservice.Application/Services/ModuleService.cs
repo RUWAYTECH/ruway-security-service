@@ -119,7 +119,7 @@ public class ModuleService : IModuleService
         var result = ResponseDto.Create<ModuleManagementDto>();
         try
         {
-            var module = await _moduleRepository.GetFirstOrDefaultAsync(a => a.ModuleId == moduleId && a.IsActive);
+            var module = await _moduleRepository.GetFirstOrDefaultAsync(a => a.ModuleId == moduleId);
             if (module == null)
             {
                 return ResponseDto.Error<ModuleManagementDto>("Módulo no encontrado.");
