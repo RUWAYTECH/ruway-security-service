@@ -66,9 +66,8 @@ public class ModuleService : IModuleService
 
     public async Task<List<ModuleManagementDto>> GetByApplicationIdAsync(Guid applicationId)
     {
-        var allModules = await _moduleRepository.GetAllAsync();
-        var modules = allModules.Where(x => x.ApplicationId == applicationId).OrderBy(x => x.Order).ToList();
-        return _mapper.Map<List<ModuleManagementDto>>(modules);
+        var allModules = await _moduleRepository.GetAsync(a=>a.ApplicationId == applicationId, orderBy: q=>q.OrderBy(x=>x.Order));
+        return _mapper.Map<List<ModuleManagementDto>>(allModules);
     }
 
     public async Task<ResponseDto<ModuleManagementDto>> CreateAsync(CreateModuleRequest request)
@@ -182,7 +181,7 @@ public class ModuleService : IModuleService
         var result = ResponseDto.Create();
         try
         {
-            var module = await _moduleRepository.GetFirstOrDefaultAsync(a => a.ModuleId == moduleId && a.IsActive);
+            var module = await _moduleRepository.GetFirstOrDefaultAsync(a => a.ModuleId == moduleId);
             if (module == null)
             {
                 return ResponseDto.Error("Módulo no encontrado.");
