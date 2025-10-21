@@ -28,4 +28,14 @@
     <ProjectReference Include="..\SecurityMicroservice.Infrastructure\SecurityMicroservice.Infrastructure.csproj" />
     <ProjectReference Include="..\SecurityMicroservice.Shared\SecurityMicroservice.Shared.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Template/" />
+    <Folder Include="Template/Mail/" />
+  </ItemGroup>
+   <ItemGroup>
+    <None Update="Template\Mail\ResetPassword.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

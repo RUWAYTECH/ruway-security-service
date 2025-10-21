@@ -87,6 +87,11 @@ builder.Services.AddOpenIddict()
         options.UseAspNetCore();
     });
 
+
+builder.Services.Configure<WebAppSettings>(builder.Configuration.GetSection("WebApp"));
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+
+
 // Add repositories and services
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
@@ -111,7 +116,7 @@ builder.Services.AddScoped<IOptionService, OptionService>();
 builder.Services.AddScoped<IUserApplicationService, UserApplicationService>();
 builder.Services.AddScoped<IUserRoleService, UserRoleService>();
 builder.Services.AddScoped<IUserPermissionService, UserPermissionService>();
-
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Add AutoMapper
 var mapperConfig = new MapperConfiguration(cfg =>

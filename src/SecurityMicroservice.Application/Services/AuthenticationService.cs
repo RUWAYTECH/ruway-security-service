@@ -1,4 +1,6 @@
 using Microsoft.Extensions.Options;
+using SecurityMicroservice.Application.IServices;
+using SecurityMicroservice.Application.Services.Emails;
 using SecurityMicroservice.Domain.Entities;
 using SecurityMicroservice.Infrastructure.IRepositories;
 using SecurityMicroservice.Infrastructure.Services;
@@ -20,15 +22,21 @@ public class AuthenticationService : IAuthenticationService
     private readonly IUserRepository _userRepository;
     private readonly IPasswordService _passwordService;
     private readonly IOptions<TokenConfiguration> _tokenConfiguration;
-
+    private readonly IEmailService _emailService;
+    private readonly WebAppSettings _webAppSettings;
     public AuthenticationService(
         IUserRepository userRepository,
         IPasswordService passwordService,
-        IOptions<TokenConfiguration> tokenConfiguration)
+        IOptions<TokenConfiguration> tokenConfiguration,
+        IEmailService emailService,
+        IOptions<WebAppSettings> webAppSettings
+        )
     {
         _userRepository = userRepository;
         _passwordService = passwordService;
         _tokenConfiguration = tokenConfiguration;
+        _emailService = emailService;
+        _webAppSettings = webAppSettings.Value;
     }
 
     public async Task<User?> ValidateUserAsync(string username, string password)
@@ -90,11 +98,13 @@ public class AuthenticationService : IAuthenticationService
             };
         }
 
-          user.PasswordResetToken = _passwordService.GenerateRandomToken();
-            user.PasswordResetTokenExpires = DateTime.UtcNow.AddHours(1);
+        user.PasswordResetToken = _passwordService.GenerateRandomToken();
+        user.PasswordResetTokenExpires = DateTime.UtcNow.AddHours(1);
 
-            _userRepository.Update(user);
+        _userRepository.Update(user);
 
+        await BuildSendEmail.ResetPasswordEmail(_emailService, user.Email, $"{user.FirstName} {user.LastName}", user.PasswordResetToken, _webAppSettings.Url);
+  
         // For now, just return success message
         return new ForgotPasswordResponse
         {
