@@ -33,7 +33,7 @@ public class AuthenticationServiceTests : IDisposable
         _tokenConfig = Options.Create(new TokenConfiguration()); 
         
 
-        _authenticationService = new AuthenticationService(_userRepository, _passwordService, _tokenConfig);
+        _authenticationService = new AuthenticationService(_userRepository, _passwordService, _tokenConfig, null, null);
     }
 
     [Fact]
