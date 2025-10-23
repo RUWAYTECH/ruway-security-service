@@ -11,6 +11,7 @@ namespace SecurityMicroservice.Application.Services;
 public interface IAuthenticationService
 {
     Task<User?> ValidateUserAsync(string username, string password);
+    Task<User?> GetUserByIdAsync(Guid userId);
     Task<TokenResponse> GenerateTokenResponseAsync(User user);
     Task UpdateLastLoginAsync(Guid userId);
     Task<ForgotPasswordResponse> ForgotPasswordAsync(ForgotPasswordRequest request);
@@ -54,6 +55,11 @@ public class AuthenticationService : IAuthenticationService
         }
 
         return user;
+    }
+
+    public async Task<User?> GetUserByIdAsync(Guid userId)
+    {
+        return await _userRepository.GetByIdAsync(userId);
     }
 
     public async Task<TokenResponse> GenerateTokenResponseAsync(User user)

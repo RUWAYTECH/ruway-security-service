@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
+using SecurityMicroservice.Domain.Entities;
 using SecurityMicroservice.Shared.DTOs;
 using System.Collections.Immutable;
 using System.Security.Claims;
@@ -56,24 +57,9 @@ public class AuthController : ControllerBase
 
             var tokenResponse = await _authenticationService.GenerateTokenResponseAsync(user);
             
-            // Create claims identity
-            var identity = new ClaimsIdentity(
-                authenticationType: TokenValidationParameters.DefaultAuthenticationType,
-                nameType: Claims.Name,
-                roleType: Claims.Role);
-
-            identity.SetClaim(Claims.Subject, user.UserId.ToString())
-                    .SetClaim(Claims.Name, user.UserName)
-                    .SetClaim("employee_id", user.EmployeeId?.ToString())
-                    .SetClaim("first_name", user.FirstName)
-                    .SetClaim("last_name", user.LastName)
-                    .SetClaim("date_of_birth", user.DateOfBirth?.ToString("dd/MM/yyyy"))
-                    .SetClaim(Claims.Email, user.Email)
-                    .SetClaims("roles", tokenResponse.Roles.ToImmutableArray())
-                    .SetClaims("permissions", tokenResponse.Permissions.ToImmutableArray());
-
+            // Create claims identity using helper method
+            var identity = CreateUserIdentity(user, tokenResponse);
             identity.SetScopes(tokenResponse.Scope.Split(' ').ToImmutableArray());
-
             identity.SetDestinations(GetDestinations);
 
             await _authenticationService.UpdateLastLoginAsync(user.UserId);
@@ -105,49 +91,7 @@ public class AuthController : ControllerBase
         }
         else if (request.IsRefreshTokenGrantType())
         {
-            var result = await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
-            
-            var userId = result.Principal?.GetClaim(Claims.Subject);
-            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userGuid))
-            {
-                return Forbid(
-                    authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
-                    properties: new(new Dictionary<string, string?>
-                    {
-                        [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidGrant,
-                        [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "Invalid refresh token."
-                    }));
-            }
-
-            // Refresh user data and generate new token
-            var user = await _authenticationService.ValidateUserAsync(result.Principal!.GetClaim(Claims.Name)!, "");
-            if (user == null)
-            {
-                return Forbid(
-                    authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
-                    properties: new(new Dictionary<string, string?>
-                    {
-                        [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidGrant,
-                        [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "User no longer valid."
-                    }));
-            }
-
-            var tokenResponse = await _authenticationService.GenerateTokenResponseAsync(user);
-            
-            // Update claims with fresh data
-            var identity = new ClaimsIdentity(result.Principal!.Identity);
-            identity.SetClaim("employee_id", user.EmployeeId?.ToString())
-                    .SetClaim("first_name", user.FirstName)
-                    .SetClaim("last_name", user.LastName)
-                    .SetClaim("date_of_birth", user.DateOfBirth?.ToString("yyyy-MM-dd"))
-                    .SetClaim(Claims.Email, user.Email)
-                   .SetClaims("roles", tokenResponse.Roles.ToImmutableArray())
-                   .SetClaims("permissions", tokenResponse.Permissions.ToImmutableArray());
-
-            identity.SetScopes(tokenResponse.Scope.Split(' ').ToImmutableArray());
-            identity.SetDestinations(GetDestinations);
-
-            return SignIn(new ClaimsPrincipal(identity), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            return await HandleRefreshTokenAsync();
         }
 
         throw new InvalidOperationException("The specified grant type is not supported.");
@@ -394,5 +338,88 @@ public class AuthController : ControllerBase
                 yield return Destinations.AccessToken;
                 yield break;
         }
+    }
+
+    /// <summary>
+    /// Handles refresh token grant type requests
+    /// </summary>
+    /// <returns>SignInResult with new tokens or Forbid result if validation fails</returns>
+    private async Task<IActionResult> HandleRefreshTokenAsync()
+    {
+        // Authenticate using the refresh token
+        var result = await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+        
+        if (!result.Succeeded)
+        {
+            return CreateRefreshTokenError("Invalid refresh token.");
+        }
+
+        // Extract and validate user ID from the refresh token
+        var userId = result.Principal?.GetClaim(Claims.Subject);
+        if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userGuid))
+        {
+            return CreateRefreshTokenError("Invalid user identifier in refresh token.");
+        }
+
+        // Validate user still exists and is active using application service
+        var user = await _authenticationService.GetUserByIdAsync(userGuid);
+        if (user == null || user.Status != UserStatus.Active)
+        {
+            return CreateRefreshTokenError("User is no longer active or does not exist.");
+        }
+
+        // Generate fresh token response with updated user data
+        var tokenResponse = await _authenticationService.GenerateTokenResponseAsync(user);
+        
+        // Create new identity with fresh claims
+        var identity = CreateUserIdentity(user, tokenResponse);
+
+        // Preserve the scopes from the original token
+        identity.SetScopes(result.Principal?.GetScopes() ?? ImmutableArray<string>.Empty);
+        identity.SetDestinations(GetDestinations);
+
+        return SignIn(new ClaimsPrincipal(identity), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+    }
+
+    /// <summary>
+    /// Creates a user identity with all necessary claims
+    /// </summary>
+    /// <param name="user">User entity</param>
+    /// <param name="tokenResponse">Token response with roles and permissions</param>
+    /// <returns>ClaimsIdentity with user claims</returns>
+    private static ClaimsIdentity CreateUserIdentity(User user, TokenResponse tokenResponse)
+    {
+        var identity = new ClaimsIdentity(
+            authenticationType: TokenValidationParameters.DefaultAuthenticationType,
+            nameType: Claims.Name,
+            roleType: Claims.Role);
+
+        identity.SetClaim(Claims.Subject, user.UserId.ToString())
+                .SetClaim(Claims.Name, user.UserName)
+                .SetClaim("employee_id", user.EmployeeId?.ToString())
+                .SetClaim("first_name", user.FirstName)
+                .SetClaim("last_name", user.LastName)
+                .SetClaim("date_of_birth", user.DateOfBirth?.ToString("yyyy-MM-dd"))
+                .SetClaim(Claims.Email, user.Email)
+                .SetClaims("roles", tokenResponse.Roles.ToImmutableArray())
+                .SetClaims("permissions", tokenResponse.Permissions.ToImmutableArray());
+
+        return identity;
+    }
+
+    /// <summary>
+    /// Creates a standardized error response for refresh token failures
+    /// </summary>
+    /// <param name="description">Error description</param>
+    /// <returns>Forbid result with error details</returns>
+    private IActionResult CreateRefreshTokenError(string description)
+    {
+        return Forbid(
+            authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+            properties: new(new Dictionary<string, string?>
+            {
+                [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidGrant,
+                [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = description
+            }));
     }
 }
