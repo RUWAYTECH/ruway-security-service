@@ -400,9 +400,55 @@ public class AuthController : ControllerBase
                 .SetClaim("first_name", user.FirstName)
                 .SetClaim("last_name", user.LastName)
                 .SetClaim("date_of_birth", user.DateOfBirth?.ToString("yyyy-MM-dd"))
-                .SetClaim(Claims.Email, user.Email)
-                .SetClaims("roles", tokenResponse.Roles.ToImmutableArray())
-                .SetClaims("permissions", tokenResponse.Permissions.ToImmutableArray());
+                .SetClaim(Claims.Email, user.Email);
+
+        // Set roles - force array by ensuring at least 2 claims if needed
+        if (tokenResponse.Roles?.Any() == true)
+        {
+            if (tokenResponse.Roles.Count == 1)
+            {
+                // For single role, add a marker to force array serialization
+                var rolesWithMarker = new List<string>(tokenResponse.Roles)
+                {
+                    "FORCE:ARRAY:FORCE" // Client should filter this out
+                };
+                identity.SetClaims("roles", rolesWithMarker.ToImmutableArray());
+
+                // For single role, duplicate it to force array serialization
+                var role = tokenResponse.Roles[0];
+                identity.SetClaims("roles", new[] { role, role }.ToImmutableArray());
+            }
+            else
+            {
+                identity.SetClaims("roles", tokenResponse.Roles.ToImmutableArray());
+            }
+        }
+        else
+        {
+            identity.SetClaims("roles", ImmutableArray<string>.Empty);
+        }
+
+        // Set permissions - force array by adding marker for single elements
+        if (tokenResponse.Permissions?.Any() == true)
+        {
+            if (tokenResponse.Permissions.Count == 1)
+            {
+                // For single permission, add a marker to force array serialization
+                var permissionsWithMarker = new List<string>(tokenResponse.Permissions)
+                {
+                    "FORCE:ARRAY:FORCE" // Client should filter this out
+                };
+                identity.SetClaims("permissions", permissionsWithMarker.ToImmutableArray());
+            }
+            else
+            {
+                identity.SetClaims("permissions", tokenResponse.Permissions.ToImmutableArray());
+            }
+        }
+        else
+        {
+            identity.SetClaims("permissions", ImmutableArray<string>.Empty);
+        }
 
         return identity;
     }
