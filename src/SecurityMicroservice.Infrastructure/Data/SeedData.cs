@@ -78,8 +78,75 @@ public static class SeedData
             RoleId = Guid.NewGuid(),
             ApplicationId = auditoriaApp.ApplicationId,
             Code = "AUDITOR_ADMIN",
-            Name = "Administrador de Auditoría",
+            Name = "Administrador de sistema de Auditoría",
             Description = "Administrador del sistema de auditoría",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        // Nuevos roles para AUDITORIA
+        var auditoriaAdministratorRole = new Role
+        {
+            RoleId = Guid.NewGuid(),
+            ApplicationId = auditoriaApp.ApplicationId,
+            Code = "A001",
+            Name = "Administrador",
+            Description = "Administrador de auditoría",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var auditoriaAssistantRole = new Role
+        {
+            RoleId = Guid.NewGuid(),
+            ApplicationId = auditoriaApp.ApplicationId,
+            Code = "A002",
+            Name = "Asistente",
+            Description = "Asistente de auditoría",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var auditoriaSupervisorRole = new Role
+        {
+            RoleId = Guid.NewGuid(),
+            ApplicationId = auditoriaApp.ApplicationId,
+            Code = "A006",
+            Name = "JOB/Supervisor",
+            Description = "Supervisor de auditoría",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var auditoriaOperationManagerRole = new Role
+        {
+            RoleId = Guid.NewGuid(),
+            ApplicationId = auditoriaApp.ApplicationId,
+            Code = "A003",
+            Name = "Jefe de operaciones",
+            Description = "Jefe de Operaciones regional",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var auditoriaVolanteRole = new Role
+        {
+            RoleId = Guid.NewGuid(),
+            ApplicationId = auditoriaApp.ApplicationId,
+            Code = "A004",
+            Name = "Volante",
+            Description = "Auditor volante",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var auditoriaAuditorRole = new Role
+        {
+            RoleId = Guid.NewGuid(),
+            ApplicationId = auditoriaApp.ApplicationId,
+            Code = "A005",
+            Name = "Auditor",
+            Description = "Auditor",
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
@@ -165,7 +232,14 @@ public static class SeedData
         await context.Roles.AddRangeAsync(
             superAdminRole, 
             securityAppAdminRole,
-            auditorAdminRole, 
+            auditorAdminRole,
+            // Nuevos roles de AUDITORIA
+            auditoriaAdministratorRole,
+            auditoriaAssistantRole,
+            auditoriaSupervisorRole,
+            auditoriaOperationManagerRole,
+            auditoriaVolanteRole,
+            auditoriaAuditorRole,
             memoUserRole,
             memoAdministradorRole,
             memoSupervisorRole,
