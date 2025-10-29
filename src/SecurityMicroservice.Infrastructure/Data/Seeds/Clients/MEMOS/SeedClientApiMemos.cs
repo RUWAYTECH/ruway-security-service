@@ -1,9 +1,12 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using OpenIddict.Abstractions;
+using OpenIddict.Core;
+using SecurityMicroservice.Infrastructure.Data;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
-namespace SecurityMicroservice.Infrastructure.Data;
-public static class SeedAudit
+namespace SecurityMicroservice.Infrastructure.Data.Seeds.Clients.MEMOS;
+
+public static class SeedClientApiMemos
 {
     public static async Task InitializeAsync(IServiceProvider serviceProvider)
     {
@@ -12,30 +15,31 @@ public static class SeedAudit
         var scopeManager = scope.ServiceProvider.GetRequiredService<IOpenIddictScopeManager>();
 
         // Create scopes first
-        var apiScope = await scopeManager.FindByNameAsync("rokys-audit-api");
+        var apiScope = await scopeManager.FindByNameAsync("rokys-memo-api");
         if (apiScope == null)
         {
             await scopeManager.CreateAsync(new OpenIddictScopeDescriptor
             {
-                Name = "rokys-audit-api",
-                DisplayName = "Rokys Audit API Access",
-                Description = "Access to Rokys Audit API",
-                Resources = { "rokys-audit-api" }
+                Name = "rokys-memo-api",
+                DisplayName = "Rokys Memo API Access",
+                Description = "Access to Rokys Memo API",
+                Resources = { "rokys-memo-api" }
             });
         }
 
         // Delete existing client if it exists (to update configuration)
-        var existingClient = await applicationManager.FindByClientIdAsync("rokys-audit-api");
+        var existingClient = await applicationManager.FindByClientIdAsync("rokys-memo-api");
         if (existingClient != null)
         {
             await applicationManager.DeleteAsync(existingClient);
         }
 
+        // Create the rokys-memo-api client with updated configuration
         var clientDescriptor = new OpenIddictApplicationDescriptor
         {
-            ClientId = "rokys-audit-api",
-            ClientSecret = "rokys-audit-secret",
-            DisplayName = "Rokys Audit API",
+            ClientId = "rokys-memo-api",
+            ClientSecret = "rokys-memo-secret",
+            DisplayName = "Rokys Memo API",
             Type = ClientTypes.Confidential,
             ConsentType = ConsentTypes.Implicit,
             Permissions =
@@ -48,7 +52,7 @@ public static class SeedAudit
                 Permissions.Scopes.Profile,
                 Permissions.Scopes.Email,
                 Permissions.Scopes.Roles,
-                Permissions.Prefixes.Scope + "rokys-audit-api"
+                Permissions.Prefixes.Scope + "rokys-memo-api"
             },
             Requirements =
             {

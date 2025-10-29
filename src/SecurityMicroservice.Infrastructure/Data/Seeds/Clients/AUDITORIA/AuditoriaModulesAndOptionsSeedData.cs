@@ -1,32 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using SecurityMicroservice.Domain.Constants;
 using SecurityMicroservice.Domain.Entities;
+using SecurityMicroservice.Infrastructure.Data;
 
-namespace SecurityMicroservice.Infrastructure.Data;
+namespace SecurityMicroservice.Infrastructure.Data.Seeds.Clients.AUDITORIA;
 
-public static class AuditSystemSeedData
+public static class AuditoriaModulesAndOptionsSeedData
 {
-    public static async Task InitializeAsync(SecurityDbContext context)
+    public static async Task SeedAsync(SecurityDbContext context)
     {
-        // Obtener la aplicación de Auditoría
-        var auditoriaApp = await context.Applications
-            .FirstOrDefaultAsync(a => a.Code == ApplicationCodes.Auditoria);
-
-        if (auditoriaApp == null)
-        {
-            Console.WriteLine("⚠️ La aplicación de Auditoría no existe. Ejecute primero el seed principal.");
-            return;
-        }
-
-        // Obtener el rol AUDITOR_ADMIN
-        var auditorAdminRole = await context.Roles
-            .FirstOrDefaultAsync(r => r.Code == "AUDITOR_ADMIN" && r.ApplicationId == auditoriaApp.ApplicationId);
-
-        if (auditorAdminRole == null)
-        {
-            Console.WriteLine("⚠️ El rol AUDITOR_ADMIN no existe. Ejecute primero el seed principal.");
-            return;
-        }
+        var auditoriaApp = await context.Applications.FirstOrDefaultAsync(a => a.Code == ApplicationCodes.Auditoria);
+        if (auditoriaApp == null) return;
 
         // Verificar si ya existen módulos para Auditoría
         var existingModules = await context.Modules
@@ -35,13 +19,13 @@ public static class AuditSystemSeedData
 
         if (existingModules)
         {
-            Console.WriteLine("ℹ️ Los módulos de Auditoría ya existen.");
-            return; // Ya se han creado los módulos para Auditoría
+            Console.WriteLine("ℹ️ Los módulos de AUDITORIA ya existen.");
+            return;
         }
 
-        Console.WriteLine("🚀 Iniciando seed de módulos, opciones y permisos para Auditoría...");
+        Console.WriteLine("🚀 Inicializando módulos y opciones para AUDITORIA...");
 
-        // === MÓDULOS ===
+        // === MÓDULOS PARA AUDITORIA ===
 
         // Módulo Dashboard
         var auditoriaDashboardModule = new Module
@@ -91,7 +75,9 @@ public static class AuditSystemSeedData
             auditoriaAuditModule
         );
 
-        // === OPCIONES ===
+        await context.SaveChangesAsync();
+
+        // === OPCIONES PARA AUDITORIA ===
 
         // Opciones para Dashboard
         var inicioOption = new Option
@@ -126,7 +112,7 @@ public static class AuditSystemSeedData
             OptionId = Guid.NewGuid(),
             ModuleId = auditoriaAdminModule.ModuleId,
             Code = "AUD_OP003",
-            Name = "Grupos",
+            Name = "Configuración de grupos",
             Icon = "group_work",
             Route = "/secure/groups",
             HttpMethod = "GET",
@@ -169,49 +155,10 @@ public static class AuditSystemSeedData
             reportesOption
         );
 
-        // === PERMISOS PARA AUDITOR_ADMIN (acceso completo) ===
-
-        var permissions = new List<Permission>();
-
-        // Helper para crear permisos múltiples
-        void AddPermissions(Guid optionId, params string[] actions)
-        {
-            foreach (var action in actions)
-            {
-                permissions.Add(new Permission
-                {
-                    PermissionId = Guid.NewGuid(),
-                    RoleId = auditorAdminRole.RoleId,
-                    OptionId = optionId,
-                    ActionCode = action,
-                    IsActive = true,
-                    CreatedAt = DateTime.UtcNow
-                });
-            }
-        }
-
-        // Permisos Dashboard
-        AddPermissions(inicioOption.OptionId, ActionCodes.Read);
-
-        // Permisos Administración (CRUD completo)
-        AddPermissions(escalasEmpresaOption.OptionId, 
-            ActionCodes.Create, ActionCodes.Read, ActionCodes.Update, ActionCodes.Delete);
-        AddPermissions(gruposOption.OptionId, 
-            ActionCodes.Create, ActionCodes.Read, ActionCodes.Update, ActionCodes.Delete);
-
-        // Permisos Auditoría (CRUD completo)
-        AddPermissions(gestionarAuditoriasOption.OptionId, 
-            ActionCodes.Create, ActionCodes.Read, ActionCodes.Update, ActionCodes.Delete);
-        AddPermissions(reportesOption.OptionId, 
-            ActionCodes.Read, ActionCodes.Export);
-
-        await context.Permissions.AddRangeAsync(permissions);
-
         await context.SaveChangesAsync();
-        
-        Console.WriteLine("✅ Seed de Auditoría completado exitosamente:");
-        Console.WriteLine($"   - 3 Módulos creados");
-        Console.WriteLine($"   - 5 Opciones creadas");
-        Console.WriteLine($"   - {permissions.Count} Permisos asignados al rol AUDITOR_ADMIN");
+
+        Console.WriteLine("✅ Módulos y opciones de AUDITORIA inicializados exitosamente:");
+        Console.WriteLine("   - 3 Módulos creados");
+        Console.WriteLine("   - 5 Opciones creadas");
     }
 }

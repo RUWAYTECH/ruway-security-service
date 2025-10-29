@@ -211,10 +211,13 @@ using (var scope = app.Services.CreateScope())
     var passwordService = scope.ServiceProvider.GetRequiredService<IPasswordService>();
 
     await context.Database.MigrateAsync();
-    await SeedData.InitializeAsync(context, passwordService);
-    await SeedClients.InitializeAsync(scope.ServiceProvider);
-    await SeedAudit.InitializeAsync(scope.ServiceProvider);
-    await AuditSystemSeedData.InitializeAsync(context);
+    
+    // NEW ORGANIZED SEED SYSTEM
+    await SecurityMicroservice.Infrastructure.Data.Seeds.MasterSeedCoordinator.InitializeAllAsync(
+        context, 
+        scope.ServiceProvider, 
+        passwordService, 
+        enableClientSeeds: true); // Set to false for core-only initialization
 }
 
 app.Run();
