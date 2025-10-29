@@ -53,7 +53,8 @@ public static class AuditSystemSeedData
             Description = "Panel principal del sistema de auditoría",
             Icon = "dashboard",
             Order = 1,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            IsActive = true
         };
 
         // Módulo Administración
@@ -66,7 +67,8 @@ public static class AuditSystemSeedData
             Description = "Configuración y administración del sistema",
             Icon = "admin_panel_settings",
             Order = 2,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            IsActive = true
         };
 
         // Módulo Auditoría
@@ -79,7 +81,8 @@ public static class AuditSystemSeedData
             Description = "Gestión de auditorías y procesos",
             Icon = "security",
             Order = 3,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            IsActive = true
         };
 
         await context.Modules.AddRangeAsync(

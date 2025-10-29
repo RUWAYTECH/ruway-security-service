@@ -186,7 +186,8 @@ public static class SeedData
             Description = "Dashboard principal del sistema",
             Icon = "home",
             Order = 1,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            IsActive = true
         };
 
         var memosTrazabilidadModule = new Module
@@ -198,7 +199,8 @@ public static class SeedData
             Description = "Administración",
             Icon = "inventory",
             Order = 2,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            IsActive = true
         };
 
         var memosAdministracionModule = new Module
@@ -210,7 +212,8 @@ public static class SeedData
             Description = "Módulo de administración del sistema",
             Icon = "admin_panel_settings",
             Order = 3,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            IsActive = true
         };
 
         // Security modules
@@ -223,7 +226,8 @@ public static class SeedData
             Description = "Módulo de administración del sistema de seguridad",
             Icon = "admin_panel_settings",
             Order = 1,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            IsActive = true
         };
 
         await context.Modules.AddRangeAsync(
