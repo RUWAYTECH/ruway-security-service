@@ -12,11 +12,12 @@ public static class AuditoriaPermissionsSeedData
         var auditoriaApp = await context.Applications.FirstOrDefaultAsync(a => a.Code == ApplicationCodes.Auditoria);
         if (auditoriaApp == null) return;
 
-        // Obtener el rol AUDITOR_ADMIN
-        var auditorAdminRole = await context.Roles
-            .FirstOrDefaultAsync(r => r.Code == "AUDITOR_ADMIN" && r.ApplicationId == auditoriaApp.ApplicationId);
+        // Obtener todos los roles de AUDITORIA
+        var roles = await context.Roles
+            .Where(r => r.ApplicationId == auditoriaApp.ApplicationId)
+            .ToListAsync();
 
-        if (auditorAdminRole == null) return;
+        if (!roles.Any()) return;
 
         // Verificar si ya existen permisos para Auditoría
         var existingPermissions = await context.Permissions
@@ -40,58 +41,67 @@ public static class AuditoriaPermissionsSeedData
 
         var permissions = new List<Permission>();
 
-        // Helper para crear permisos múltiples
-        void AddPermissions(Guid optionId, params string[] actions)
+        // Helper para crear permisos
+        void AddPermission(Guid roleId, Guid optionId, string actionCode)
         {
-            foreach (var action in actions)
+            permissions.Add(new Permission
             {
-                permissions.Add(new Permission
-                {
-                    PermissionId = Guid.NewGuid(),
-                    RoleId = auditorAdminRole.RoleId,
-                    OptionId = optionId,
-                    ActionCode = action,
-                    IsActive = true,
-                    CreatedAt = DateTime.UtcNow
-                });
+                PermissionId = Guid.NewGuid(),
+                RoleId = roleId,
+                OptionId = optionId,
+                ActionCode = actionCode,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+
+        // Configurar permisos por rol
+        foreach (var role in roles)
+        {
+            switch (role.Code)
+            {
+                case "A001": // AUDITOR_ADMIN - Acceso completo a todas las opciones con GET
+                    if (inicioOption != null)
+                        AddPermission(role.RoleId, inicioOption.OptionId, ActionCodes.Read);
+                    if (escalasEmpresaOption != null)
+                        AddPermission(role.RoleId, escalasEmpresaOption.OptionId, ActionCodes.Read);
+                    if (gruposOption != null)
+                        AddPermission(role.RoleId, gruposOption.OptionId, ActionCodes.Read);
+                    if (gestionarAuditoriasOption != null)
+                        AddPermission(role.RoleId, gestionarAuditoriasOption.OptionId, ActionCodes.Read);
+                    if (reportesOption != null)
+                        AddPermission(role.RoleId, reportesOption.OptionId, ActionCodes.Read);
+                    break;
+
+                case "A002": // AUDITOR_SENIOR - Acceso a AUD_OP004 con GET
+                case "A003": // AUDITOR_JUNIOR - Acceso a AUD_OP004 con GET
+                case "A004": // CONSULTOR - Acceso a AUD_OP004 con GET
+                case "A005": // REVISOR - Acceso a AUD_OP004 con GET
+                    if (gestionarAuditoriasOption != null)
+                        AddPermission(role.RoleId, gestionarAuditoriasOption.OptionId, ActionCodes.Read);
+                    break;
+
+                case "A006": // OBSERVADOR - Acceso a AUD_OP004 y AUD_OP005 con GET
+                    if (gestionarAuditoriasOption != null)
+                        AddPermission(role.RoleId, gestionarAuditoriasOption.OptionId, ActionCodes.Read);
+                    if (reportesOption != null)
+                        AddPermission(role.RoleId, reportesOption.OptionId, ActionCodes.Read);
+                    break;
             }
-        }
-
-        // Permisos Dashboard
-        if (inicioOption != null)
-        {
-            AddPermissions(inicioOption.OptionId, ActionCodes.Read);
-        }
-
-        // Permisos Administración (CRUD completo)
-        if (escalasEmpresaOption != null)
-        {
-            AddPermissions(escalasEmpresaOption.OptionId, 
-                ActionCodes.Create, ActionCodes.Read, ActionCodes.Update, ActionCodes.Delete);
-        }
-
-        if (gruposOption != null)
-        {
-            AddPermissions(gruposOption.OptionId, 
-                ActionCodes.Create, ActionCodes.Read, ActionCodes.Update, ActionCodes.Delete);
-        }
-
-        // Permisos Auditoría (CRUD completo)
-        if (gestionarAuditoriasOption != null)
-        {
-            AddPermissions(gestionarAuditoriasOption.OptionId, 
-                ActionCodes.Create, ActionCodes.Read, ActionCodes.Update, ActionCodes.Delete);
-        }
-
-        if (reportesOption != null)
-        {
-            AddPermissions(reportesOption.OptionId, ActionCodes.Read);
         }
 
         await context.Permissions.AddRangeAsync(permissions);
         await context.SaveChangesAsync();
 
         Console.WriteLine($"✅ Permisos de AUDITORIA inicializados exitosamente:");
-        Console.WriteLine($"   - {permissions.Count} permisos asignados al rol AUDITOR_ADMIN");
+        Console.WriteLine($"   - {permissions.Count} permisos asignados a {roles.Count} roles");
+        
+        // Mostrar resumen por rol
+        var permissionsByRole = permissions.GroupBy(p => p.RoleId);
+        foreach (var roleGroup in permissionsByRole)
+        {
+            var roleName = roles.First(r => r.RoleId == roleGroup.Key).Code;
+            Console.WriteLine($"   - {roleName}: {roleGroup.Count()} permisos");
+        }
     }
 }
