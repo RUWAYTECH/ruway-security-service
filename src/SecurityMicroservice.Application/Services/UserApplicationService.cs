@@ -302,12 +302,14 @@ public class UserApplicationService : IUserApplicationService
                 filter = filter.AndAlso(x => x.ApplicationId == requestDto.ApplicationId.Value);
             }
 
-
-
             if (!string.IsNullOrEmpty(requestDto.Filter))
             {
                 filter = filter.AndAlso(x => x.Application.Name.ToLower().Contains(requestDto.Filter.ToLower()) ||
-                 x.Application.Code.ToLower().Contains(requestDto.Filter.ToLower()));
+                 x.Application.Code.ToLower().Contains(requestDto.Filter.ToLower()) ||
+                 (x.User.FirstName + " " + x.User.LastName).ToLower().Contains(requestDto.Filter.ToLower()) ||
+                        x.User.FirstName.ToLower().Contains(requestDto.Filter.ToLower()) ||
+                        x.User.LastName.ToLower().Contains(requestDto.Filter.ToLower()) ||
+                        x.User.UserName.ToLower().Contains(requestDto.Filter.ToLower()));
             }
 
             Func<IQueryable<UserApplication>, IOrderedQueryable<UserApplication>> orderBy = q => q.OrderByDescending(x => x.AssignedAt);
