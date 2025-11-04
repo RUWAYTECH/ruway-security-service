@@ -56,20 +56,6 @@ public class UserRoleService : IUserRoleService
         return result;
     }
 
-    public async Task<List<UserRoleDto>> GetByUserIdAsync(Guid userId)
-    {
-        var result = ResponseDto.Create<List<UserRoleDto>>();
-        try
-        {
-            var userRoles = await _userRoleRepository.GetByUserIdAsync(userId);
-            result.Data = _mapper.Map<List<UserRoleDto>>(userRoles);
-        }
-        catch (Exception ex)
-        {
-            result = ResponseDto.Error<List<UserRoleDto>>(ex.Message);
-        }
-        return result.Data;
-    }
 
     public async Task<List<UserRoleDto>> GetByRoleIdAsync(Guid roleId)
     {
