@@ -177,6 +177,7 @@ builder.Services.AddCors(options =>
 
 
  builder.Services.AddEventPublisher(builder.Configuration);
+builder.Services.AddHttpClient<IRecaptchaService, RecaptchaService>();
 
 var app = builder.Build();
 
@@ -219,5 +220,4 @@ using (var scope = app.Services.CreateScope())
         passwordService, 
         enableClientSeeds: true); // Set to false for core-only initialization
 }
-
 app.Run();

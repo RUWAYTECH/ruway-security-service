@@ -1,3 +1,4 @@
+﻿using Azure;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -5,6 +6,7 @@ using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using SecurityMicroservice.Domain.Entities;
 using SecurityMicroservice.Shared.DTOs;
+using SecurityMicroservice.Shared.Response.Common;
 using System.Collections.Immutable;
 using System.Security.Claims;
 using static OpenIddict.Abstractions.OpenIddictConstants;
@@ -16,10 +18,14 @@ namespace SecurityMicroservice.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly Application.Services.IAuthenticationService _authenticationService;
+    private readonly Application.IServices.IRecaptchaService _recaptchaService;
+    private readonly IConfiguration _configuration;
 
-    public AuthController(Application.Services.IAuthenticationService authenticationService)
+    public AuthController(Application.Services.IAuthenticationService authenticationService, Application.IServices.IRecaptchaService recaptchaService, IConfiguration configuration)
     {
         _authenticationService = authenticationService;
+        _recaptchaService = recaptchaService;
+        _configuration = configuration;
     }
 
     [HttpPost("token")]
@@ -35,7 +41,11 @@ public class AuthController : ControllerBase
                 request.SetParameter(parameter.Key, parameter.Value.ToString());
             }
         }
-        
+
+        bool useRecaptcha = Convert.ToBoolean(_configuration["Recaptcha:UseRecaptcha"]);
+        var recaptchaToken = (string?)request.GetParameter("recaptcha_token");
+        var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+
         if (string.IsNullOrEmpty(request.GrantType))
         {
             throw new InvalidOperationException("The grant_type parameter is missing.");
@@ -43,6 +53,34 @@ public class AuthController : ControllerBase
 
         if (request.IsPasswordGrantType())
         {
+            if (useRecaptcha)
+            {
+                if (recaptchaToken != null)
+                {
+                    var (isValid, score) = await _recaptchaService.ValidateTokenAsync(recaptchaToken, clientIp);
+                    if (!isValid)
+                    {
+                        return Forbid(
+                            authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                            properties: new(new Dictionary<string, string?>
+                            {
+                                [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidGrant,
+                                [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "Validación de reCAPTCHA fallido."
+                            }));
+                    }
+                }
+                else
+                {
+                    return Forbid(
+                            authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                            properties: new(new Dictionary<string, string?>
+                            {
+                                [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidGrant,
+                                [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "Es requerido que se envie el token de reCAPTCHA."
+                            }));
+                }
+            }
+
             var user = await _authenticationService.ValidateUserAsync(request.Username!, request.Password!);
             if (user == null)
             {
@@ -51,7 +89,7 @@ public class AuthController : ControllerBase
                     properties: new(new Dictionary<string, string?>
                     {
                         [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidGrant,
-                        [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "Invalid username or password."
+                        [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "Usuario o contraseña invalidas."
                     }));
             }
 
