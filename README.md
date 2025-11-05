@@ -77,6 +77,86 @@ dotnet run
 
 The API will be available at `https://localhost:7001` with Swagger UI at `https://localhost:7001/swagger`
 
+### Running Migrations and Seeds
+
+#### Run Migrations and Seeds
+
+**Step 1: Apply Database Migrations**
+```bash
+# Comando principal que usé:
+cd /Applications/Ruwaytech/rokys/ruway-security-service/src/SecurityMicroservice.Api
+dotnet ef database update
+
+# Alternativa desde la raíz del proyecto:
+cd /Applications/Ruwaytech/rokys/ruway-security-service
+dotnet ef database update --project src/SecurityMicroservice.Api/SecurityMicroservice.Api.csproj
+```
+
+**Step 2: Start Application (Seeds run automatically)**
+```bash
+# Comando principal que usé:
+cd /Applications/Ruwaytech/rokys/ruway-security-service
+dotnet run --project src/SecurityMicroservice.Api/SecurityMicroservice.Api.csproj
+
+# Alternativa navegando al directorio:
+cd /Applications/Ruwaytech/rokys/ruway-security-service/src/SecurityMicroservice.Api
+dotnet run
+```
+
+**What gets seeded:**
+- **Core Security System**: Base security application, admin user, and system roles
+- **MEMOS Application**: Complete application with roles (R001-R006), modules, options, and permissions
+- **AUDITORIA Application**: Complete application with roles (A001-A006), modules, options, and permissions
+- **OpenIddict Configuration**: OAuth2/OIDC clients (`rokys-memo-api`, `rokys-audit-api`)
+
+**Seed Data Structure:**
+```
+🔐 Core Security System
+├── Admin User (admin/admin123)
+├── Base Roles (SUPERADMIN, APP_ADMIN)
+└── Security Application
+
+📋 MEMOS Application (Client: rokys-memo-api)
+├── 6 Roles: R001(SYSADMIN), R002(RRHH), R003(JEFATURA), R004(SECRETARIA), R005(EMPLEADO), R006(INVITADO)
+├── 4 Modules: Gestión de Memorandos, Configuración, Reportes, Seguridad
+├── 12 Options: Complete CRUD functionality
+└── Permissions: Role-based access control
+
+📊 AUDITORIA Application (Client: rokys-audit-api)
+├── 7 Roles: A001(AUDITOR_ADMIN), A002(AUDITOR_SENIOR), A003(AUDITOR_JUNIOR), A004(CONSULTOR), A005(REVISOR), A006(OBSERVADOR), APPADMIN
+├── 3 Modules: Gestión de Auditorías, Configuración, Reportes
+├── 5 Options: Audit-specific functionality
+└── 16 Permissions: Distributed across roles with granular access control
+```
+
+**Manual Seed Reset (if needed):**
+```bash
+# Delete database and recreate with fresh seeds
+cd src/SecurityMicroservice.Api
+rm security.db  # For SQLite (adjust for SQL Server)
+dotnet ef database update
+dotnet run  # Seeds will initialize automatically
+```
+
+**Seed Status Messages:**
+When the application starts, you'll see seed status messages:
+```
+🚀 Initializing Core Security System...
+✅ Core Security System initialized successfully!
+
+📦 Initializing MEMOS Application Data...
+✅ MEMOS Application Data initialized successfully!
+
+📦 Initializing AUDITORIA Application Data...
+🚀 Inicializando módulos y opciones para AUDITORIA...
+✅ Módulos y opciones de AUDITORIA inicializados exitosamente: 3 Módulos, 5 Opciones
+🚀 Inicializando permisos para AUDITORIA...
+✅ Permisos de AUDITORIA inicializados exitosamente: 16 permisos asignados a 7 roles
+✅ AUDITORIA Application Data initialized successfully!
+
+🎉 Master Seed Initialization completed successfully!
+```
+
 ### Default Credentials
 - **Username**: admin
 - **Password**: admin123
