@@ -94,13 +94,14 @@ dotnet ef database update --project src/SecurityMicroservice.Api/SecurityMicrose
 
 **Step 2: Start Application (Seeds run automatically)**
 ```bash
-# Comando principal que usé:
 cd /Applications/Ruwaytech/rokys/ruway-security-service
 dotnet run --project src/SecurityMicroservice.Api/SecurityMicroservice.Api.csproj
+```
 
-# Alternativa navegando al directorio:
+**Step 3: Build for Production (Optional)**
+```bash
 cd /Applications/Ruwaytech/rokys/ruway-security-service/src/SecurityMicroservice.Api
-dotnet run
+dotnet publish -c Release -o ./publish
 ```
 
 **What gets seeded:**

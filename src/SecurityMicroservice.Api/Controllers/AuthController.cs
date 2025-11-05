@@ -43,7 +43,7 @@ public class AuthController : ControllerBase
         }
 
         bool useRecaptcha = Convert.ToBoolean(_configuration["Recaptcha:UseRecaptcha"]);
-        var recaptchaToken = (string?)request.GetParameter("recaptcha_token");
+        var recaptchaToken = (string?)request.GetParameter("recaptchaToken");
         var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
 
         if (string.IsNullOrEmpty(request.GrantType))
