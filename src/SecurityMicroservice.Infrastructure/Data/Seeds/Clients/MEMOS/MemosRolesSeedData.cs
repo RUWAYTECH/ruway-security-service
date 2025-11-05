@@ -18,9 +18,9 @@ public static class MemosRolesSeedData
             {
                 RoleId = Guid.NewGuid(),
                 ApplicationId = memosApp.ApplicationId,
-                Code = "MEMO_USER",
-                Name = "Usuario de Memos",
-                Description = "Usuario básico del sistema de memos",
+                Code = "APPADMIN",
+                Name = "Administrador de aplicación",
+                Description = "Usuario Administrador de aplicación",
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             },
@@ -61,16 +61,6 @@ public static class MemosRolesSeedData
                 Code = "R004",
                 Name = "RRHH",
                 Description = "Recursos Humanos - gestión de empleados y reportes y memorandums",
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow
-            },
-            new Role
-            {
-                RoleId = Guid.NewGuid(),
-                ApplicationId = memosApp.ApplicationId,
-                Code = "R005",
-                Name = "SYSADMIN",
-                Description = "Administrador del sistema",
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             },
