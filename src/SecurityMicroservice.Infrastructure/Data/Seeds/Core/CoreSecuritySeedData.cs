@@ -187,7 +187,7 @@ public static class CoreSecuritySeedData
         // === DEFAULT ADMIN USER ===
         var adminUser = new User
         {
-            UserId = Guid.NewGuid(),
+            UserId = Guid.Parse("EEEEEEEE-1111-1111-1111-111111111111"),
             UserName = "admin",
             PasswordHash = passwordService.HashPassword("admin123"),
             Status = UserStatus.Active,
