@@ -9,7 +9,6 @@ namespace SecurityMicroservice.Application.IServices
     {
         Task<List<UserRoleDto>> GetAllAsync();
         Task<ResponseDto<UserRoleDto>> GetByIdAsync(Guid userId, Guid roleId);
-        Task<List<UserRoleDto>> GetByUserIdAsync(Guid userId);
         Task<List<UserRoleDto>> GetByRoleIdAsync(Guid roleId);
         Task<ResponseDto<UserRoleDto>> CreateAsync(CreateUserRoleRequest request);
         Task<ResponseDto<UserRoleDto>> UpdateAsync(Guid userId, Guid roleId, UpdateUserRoleRequest request);

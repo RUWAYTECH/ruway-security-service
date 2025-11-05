@@ -237,7 +237,7 @@ public class UserApplicationService : IUserApplicationService
     {
         var user = await _userRepository.GetFirstOrDefaultAsync(filter: x => x.UserId == userId);
         var application = await _applicationRepository.GetFirstOrDefaultAsync(filter: x => x.ApplicationId == applicationId && x.IsActive);
-        var userRoles = await _userRoleRepository.GetByUserIdAsync(userId);
+        var userRoles = await _userRoleRepository.GetByUserIdAsync(userId, applicationId);
         var userUpdatedEvent = new UserUpdatedEvent(
             UserId: user.UserId,
             EmployeeId: user.EmployeeId,

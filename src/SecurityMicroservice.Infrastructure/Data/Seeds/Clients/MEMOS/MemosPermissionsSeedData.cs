@@ -13,7 +13,7 @@ public static class MemosPermissionsSeedData
         if (memosApp == null) return;
 
         // Obtener roles de MEMOS
-        var memoSysAdminRole = await context.Roles.FirstOrDefaultAsync(r => r.Code == "R005" && r.ApplicationId == memosApp.ApplicationId); // SYSADMIN
+        var memoSysAdminRole = await context.Roles.FirstOrDefaultAsync(r => r.Code == "APPADMIN" && r.ApplicationId == memosApp.ApplicationId); // SYSADMIN
         var memoRRHHRole = await context.Roles.FirstOrDefaultAsync(r => r.Code == "R004" && r.ApplicationId == memosApp.ApplicationId); // RRHH
         var memoAdministradorRole = await context.Roles.FirstOrDefaultAsync(r => r.Code == "R001" && r.ApplicationId == memosApp.ApplicationId); // Administrador
         var memoSupervisorRole = await context.Roles.FirstOrDefaultAsync(r => r.Code == "R002" && r.ApplicationId == memosApp.ApplicationId); // Supervisor

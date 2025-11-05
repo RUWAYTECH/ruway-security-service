@@ -51,16 +51,6 @@ public class UserRolesController : ControllerBase
     }
 
     /// <summary>
-    /// Obtiene todos los roles asignados a un usuario específico
-    /// </summary>
-    [HttpGet("user/{userId:guid}")]
-    public async Task<ActionResult<List<UserRoleDto>>> GetRolesByUser(Guid userId)
-    {
-        var userRoles = await _userRoleService.GetByUserIdAsync(userId);
-        return Ok(userRoles);
-    }
-
-    /// <summary>
     /// Obtiene todos los usuarios asignados a un rol específico
     /// </summary>
     [HttpGet("role/{roleId:guid}")]

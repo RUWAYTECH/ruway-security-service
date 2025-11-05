@@ -10,12 +10,13 @@ public class UserRoleRepository : EFRepository<UserRole>, IUserRoleRepository
     {
     }
 
-    public async Task<List<UserRole>> GetByUserIdAsync(Guid userId)
+    public async Task<List<UserRole>> GetByUserIdAsync(Guid userId, Guid applicationId)
     {
         return await GetAsync(
-            ur => ur.UserId == userId,
+            ur => ur.UserId == userId && ur.Role.ApplicationId == applicationId,
+
             q => q.OrderBy(x => x.AssignedAt),
-            ur => ur.User, 
+            ur => ur.User,
             ur => ur.Role);
     }
 

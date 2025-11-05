@@ -72,6 +72,18 @@ public static class AuditoriaPermissionsSeedData
                     if (reportesOption != null)
                         AddPermission(role.RoleId, reportesOption.OptionId, ActionCodes.Read);
                     break;
+                 case "APPADMIN": // APPADMIN - Acceso completo a todas las opciones con GET
+                    if (inicioOption != null)
+                        AddPermission(role.RoleId, inicioOption.OptionId, ActionCodes.Read);
+                    if (escalasEmpresaOption != null)
+                        AddPermission(role.RoleId, escalasEmpresaOption.OptionId, ActionCodes.Read);
+                    if (gruposOption != null)
+                        AddPermission(role.RoleId, gruposOption.OptionId, ActionCodes.Read);
+                    if (gestionarAuditoriasOption != null)
+                        AddPermission(role.RoleId, gestionarAuditoriasOption.OptionId, ActionCodes.Read);
+                    if (reportesOption != null)
+                        AddPermission(role.RoleId, reportesOption.OptionId, ActionCodes.Read);
+                    break;
 
                 case "A002": // AUDITOR_SENIOR - Acceso a AUD_OP004 con GET
                 case "A003": // AUDITOR_JUNIOR - Acceso a AUD_OP004 con GET
