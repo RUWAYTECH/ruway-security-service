@@ -1,9 +1,5 @@
-﻿using SecurityMicroservice.Shared.DTOs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Rokys.Memo.Common.Constant;
+using SecurityMicroservice.Shared.DTOs;
 
 namespace SecurityMicroservice.Shared.Response.User
 {
@@ -17,5 +13,8 @@ namespace SecurityMicroservice.Shared.Response.User
         public DateTime? LastLoginAt { get; set; }
         public List<ApplicationDto> Applications { get; set; } = new();
         public List<RoleDto> Roles { get; set; } = new();
+
+        public bool IsSuperAdmin { get { return Roles.Any(r => r.Code == RoleCodes.SuperAdmin); } }
+        public bool IsAppAdmin { get { return Roles.Any(r => r.Code == RoleCodes.ApplicationAdmin); } }
     }
 }

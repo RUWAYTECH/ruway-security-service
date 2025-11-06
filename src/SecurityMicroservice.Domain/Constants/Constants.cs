@@ -26,6 +26,9 @@ namespace SecurityMicroservice.Domain.Constants
             public const string Profiles = "profiles";
             public const string FullName = "fullName";
             public const string Position = "position";
+            public const string Roles = "roles";
+
+            public const string Permissions = "permissions";
         }
     }
 }

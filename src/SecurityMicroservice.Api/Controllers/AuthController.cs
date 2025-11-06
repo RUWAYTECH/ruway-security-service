@@ -10,6 +10,7 @@ using SecurityMicroservice.Shared.Response.Common;
 using System.Collections.Immutable;
 using System.Security.Claims;
 using static OpenIddict.Abstractions.OpenIddictConstants;
+using static SecurityMicroservice.Domain.Constants.Constants;
 
 namespace SecurityMicroservice.Api.Controllers;
 
@@ -450,20 +451,20 @@ public class AuthController : ControllerBase
                 {
                     "FORCE:ARRAY:FORCE" // Client should filter this out
                 };
-                identity.SetClaims("roles", rolesWithMarker.ToImmutableArray());
+                identity.SetClaims(ClaimNames.Roles, rolesWithMarker.ToImmutableArray());
 
                 // For single role, duplicate it to force array serialization
                 var role = tokenResponse.Roles[0];
-                identity.SetClaims("roles", new[] { role, role }.ToImmutableArray());
+                identity.SetClaims(ClaimNames.Roles, new[] { role, role }.ToImmutableArray());
             }
             else
             {
-                identity.SetClaims("roles", tokenResponse.Roles.ToImmutableArray());
+                identity.SetClaims(ClaimNames.Roles, tokenResponse.Roles.ToImmutableArray());
             }
         }
         else
         {
-            identity.SetClaims("roles", ImmutableArray<string>.Empty);
+            identity.SetClaims(ClaimNames.Roles, ImmutableArray<string>.Empty);
         }
 
         // Set permissions - force array by adding marker for single elements
@@ -476,16 +477,16 @@ public class AuthController : ControllerBase
                 {
                     "FORCE:ARRAY:FORCE" // Client should filter this out
                 };
-                identity.SetClaims("permissions", permissionsWithMarker.ToImmutableArray());
+                identity.SetClaims(ClaimNames.Permissions, permissionsWithMarker.ToImmutableArray());
             }
             else
             {
-                identity.SetClaims("permissions", tokenResponse.Permissions.ToImmutableArray());
+                identity.SetClaims(ClaimNames.Permissions, tokenResponse.Permissions.ToImmutableArray());
             }
         }
         else
         {
-            identity.SetClaims("permissions", ImmutableArray<string>.Empty);
+            identity.SetClaims(ClaimNames.Permissions, ImmutableArray<string>.Empty);
         }
 
         return identity;

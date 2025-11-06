@@ -92,6 +92,9 @@ builder.Services.Configure<WebAppSettings>(builder.Configuration.GetSection("Web
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
 
+// Add HttpContextAccessor for accessing HTTP context in services
+builder.Services.AddHttpContextAccessor();
+
 // Add repositories and services
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();

@@ -1,9 +1,12 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Http;
+using Rokys.Memo.Common.Constant;
 using SecurityMicroservice.Application.IServices;
 using SecurityMicroservice.Domain.Entities;
 using SecurityMicroservice.Infrastructure.IRepositories;
 using SecurityMicroservice.Shared.Common;
 using SecurityMicroservice.Shared.DTOs;
+using SecurityMicroservice.Shared.Extensions;
 using SecurityMicroservice.Shared.Response.Common;
 using System.Linq.Expressions;
 
@@ -14,17 +17,20 @@ public class ApplicationService : IApplicationService
     private readonly IApplicationRepository _applicationRepository;
     private readonly IMapper _mapper;
 
+    private readonly IHttpContextAccessor _httpContextAccessor;
     public ApplicationService(
         IApplicationRepository applicationRepository,
-        IMapper mapper)
+        IMapper mapper,
+        IHttpContextAccessor httpContextAccessor)
     {
         _applicationRepository = applicationRepository;
         _mapper = mapper;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<List<ApplicationDto>> GetAllAsync()
     {
-        var applications = await _applicationRepository.GetAsync(a=>a.IsActive);
+        var applications = await _applicationRepository.GetAsync(a => a.IsActive);
         return _mapper.Map<List<ApplicationDto>>(applications);
     }
 
@@ -177,9 +183,20 @@ public class ApplicationService : IApplicationService
         var response = ResponseDto.Create<PaginationResponseDto<ApplicationDto>>();
         try
         {
-            Expression<Func<Domain.Entities.Application, bool>>? filter = null;
+            var currentUser = _httpContextAccessor.CurrentUser();
+            if (currentUser.IsSuperAdmin == false && currentUser.IsAppAdmin == false)
+            {
+                response.Data = new PaginationResponseDto<ApplicationDto>
+                {
+                    Items = new List<ApplicationDto>(),
+                    TotalCount = 0,
+                    PageNumber = requestDto.PageNumber,
+                    PageSize = requestDto.PageSize
+                };
+            }
 
-            // Filtro de búsqueda por texto
+            Expression<Func<Domain.Entities.Application, bool>>? filter = a => a.IsActive;
+            
             if (!string.IsNullOrEmpty(requestDto.Filter))
             {
                 var searchFilter = requestDto.Filter.ToLower();
@@ -188,8 +205,19 @@ public class ApplicationService : IApplicationService
                                app.BaseUrl.ToLower().Contains(searchFilter);
             }
 
+            if (currentUser.IsAppAdmin)
+            {
+                var userApplicationCodes = currentUser.Roles?
+                    .Where(a => a.Code == RoleCodes.ApplicationAdmin)
+                    .Select(r => r.ApplicationCode)
+                    .Distinct()
+                    .ToList() ?? new List<string>();
+                 filter = filter.AndAlso(app => userApplicationCodes.Contains(app.Code));
+            }
+
+            
             // Ordenamiento por defecto: por fecha de creación descendente
-            Func<IQueryable<Domain.Entities.Application>, IOrderedQueryable<Domain.Entities.Application>> orderBy = 
+            Func<IQueryable<Domain.Entities.Application>, IOrderedQueryable<Domain.Entities.Application>> orderBy =
                 q => q.OrderByDescending(x => x.CreatedAt);
 
             var (items, totalRows) = await _applicationRepository.GetPagedAsync(

@@ -1,4 +1,6 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Http;
+using Rokys.Memo.Common.Constant;
 using SecurityMicroservice.Application.IServices;
 using SecurityMicroservice.Domain.Entities;
 using SecurityMicroservice.Infrastructure.IRepositories;
@@ -17,14 +19,18 @@ public class ModuleService : IModuleService
     private readonly IApplicationRepository _applicationRepository;
     private readonly IMapper _mapper;
 
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
     public ModuleService(
         IModuleRepository moduleRepository,
         IApplicationRepository applicationRepository,
-        IMapper mapper)
+        IMapper mapper,
+        IHttpContextAccessor httpContextAccessor)
     {
         _moduleRepository = moduleRepository;
         _applicationRepository = applicationRepository;
         _mapper = mapper;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<ResponseDto<ModuleManagementDto>> GetByIdAsync(Guid moduleId)
@@ -208,6 +214,17 @@ public class ModuleService : IModuleService
             {
                 filter = filter.AndAlso(m => m.ApplicationId == requestDto.ApplicationId);
             }
+            var currentUser = _httpContextAccessor.CurrentUser();
+            if (currentUser.IsAppAdmin)
+            {
+                var userApplicationCodes = currentUser.Roles?
+                    .Where(a => a.Code == RoleCodes.ApplicationAdmin)
+                    .Select(r => r.ApplicationCode)
+                    .Distinct()
+                    .ToList() ?? new List<string>();
+                filter = filter.AndAlso(app => userApplicationCodes.Contains(app.Application.Code));
+            }
+            
             // Filtro de búsqueda por texto
             if (!string.IsNullOrEmpty(requestDto.Filter))
             {

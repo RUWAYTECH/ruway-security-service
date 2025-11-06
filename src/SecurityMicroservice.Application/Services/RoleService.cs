@@ -1,4 +1,6 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Http;
+using Rokys.Memo.Common.Constant;
 using SecurityMicroservice.Application.IServices;
 using SecurityMicroservice.Domain.Entities;
 using SecurityMicroservice.Infrastructure.IRepositories;
@@ -15,15 +17,18 @@ public class RoleService : IRoleService
     private readonly IRoleRepository _roleRepository;
     private readonly IApplicationRepository _applicationRepository;
     private readonly IMapper _mapper;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public RoleService(
         IRoleRepository roleRepository,
         IApplicationRepository applicationRepository,
-        IMapper mapper)
+        IMapper mapper,
+        IHttpContextAccessor httpContextAccessor)
     {
         _roleRepository = roleRepository;
         _applicationRepository = applicationRepository;
         _mapper = mapper;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<List<RoleDto>> GetAllAsync()
@@ -202,6 +207,17 @@ public class RoleService : IRoleService
                 filter = filter.AndAlso(r => r.ApplicationId == requestDto.ApplicationId);
             }
 
+            var currentUser = _httpContextAccessor.CurrentUser();
+            if (currentUser.IsAppAdmin)
+            {
+                var userApplicationCodes = currentUser.Roles?
+                    .Where(a => a.Code == RoleCodes.ApplicationAdmin)
+                    .Select(r => r.ApplicationCode)
+                    .Distinct()
+                    .ToList() ?? new List<string>();
+                filter = filter.AndAlso(app => userApplicationCodes.Contains(app.Application.Code));
+            }
+
             // Filtro de búsqueda por texto
             if (!string.IsNullOrEmpty(requestDto.Filter))
             {
@@ -214,7 +230,7 @@ public class RoleService : IRoleService
             }
 
             // Ordenamiento por defecto: por fecha de creación descendente
-            Func<IQueryable<Domain.Entities.Role>, IOrderedQueryable<Domain.Entities.Role>> orderBy = 
+            Func<IQueryable<Domain.Entities.Role>, IOrderedQueryable<Domain.Entities.Role>> orderBy =
                 q => q.OrderByDescending(x => x.CreatedAt);
 
             var (items, totalRows) = await _roleRepository.GetPagedAsync(
