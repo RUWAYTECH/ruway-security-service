@@ -29,8 +29,8 @@ public static class AuditoriaRolesSeedData
                 RoleId = Guid.NewGuid(),
                 ApplicationId = auditoriaApp.ApplicationId,
                 Code = "A001",
-                Name = "Administrador",
-                Description = "Administrador de auditoría",
+                Name = "Jefe de Area",
+                Description = "Jefe de Area",
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             },

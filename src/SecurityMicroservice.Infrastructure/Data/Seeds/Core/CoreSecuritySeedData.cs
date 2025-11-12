@@ -188,6 +188,8 @@ public static class CoreSecuritySeedData
         var adminUser = new User
         {
             UserId = Guid.Parse("EEEEEEEE-1111-1111-1111-111111111111"),
+            LastName = "Admin",
+            FirstName = "Super",
             UserName = "admin",
             PasswordHash = passwordService.HashPassword("admin123"),
             Status = UserStatus.Active,
