@@ -215,7 +215,7 @@ public class ModuleService : IModuleService
                 filter = filter.AndAlso(m => m.ApplicationId == requestDto.ApplicationId);
             }
             var currentUser = _httpContextAccessor.CurrentUser();
-            if (currentUser.IsAppAdmin)
+            if (currentUser.IsAppAdmin && !currentUser.IsSuperAdmin)
             {
                 var userApplicationCodes = currentUser.Roles?
                     .Where(a => a.Code == RoleCodes.ApplicationAdmin)

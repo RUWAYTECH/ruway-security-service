@@ -205,7 +205,7 @@ public class ApplicationService : IApplicationService
                                app.BaseUrl.ToLower().Contains(searchFilter);
             }
 
-            if (currentUser.IsAppAdmin)
+            if (currentUser.IsAppAdmin && !currentUser.IsSuperAdmin)
             {
                 var userApplicationCodes = currentUser.Roles?
                     .Where(a => a.Code == RoleCodes.ApplicationAdmin)
