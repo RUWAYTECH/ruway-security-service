@@ -145,7 +145,9 @@ public class UserService : IUserService
                 filter = x =>
                     x.UserName.ToLower().Contains(filterLower) ||
                     x.FirstName.ToLower().Contains(filterLower) ||
-                    x.LastName.ToLower().Contains(filterLower);
+                    x.LastName.ToLower().Contains(filterLower) ||
+                    ((x.FirstName ?? "") + " " + (x.LastName ?? "")).ToLower().Contains(filterLower) ||
+                    ((x.LastName ?? "") + " " + (x.FirstName ?? "")).ToLower().Contains(filterLower); ;
             }
 
             Func<IQueryable<User>, IOrderedQueryable<User>> orderBy = q => q.OrderBy(x => x.CreatedAt);
