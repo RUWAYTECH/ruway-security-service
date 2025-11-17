@@ -66,10 +66,8 @@ public class UserService : IUserService
                 Status = UserStatus.Active
             };
             var validationUser = await _userRepository.GetFirstOrDefaultAsync(filter: x => x.UserName == request.Username && (!request.EmployeeId.HasValue || x.EmployeeId == request.EmployeeId));
-            if (validationUser == null)
-            {
-                return ResponseDto.Error<UserResponseDto>("El usuario que esta intentando crear no existe.");
-            }
+            
+                
             if (validationUser.Status == UserStatus.Inactive)
             {
                 return ResponseDto.Error<UserResponseDto>("El usuario asociado a este nombre de usuario o empleado está inactivo.");
@@ -90,7 +88,8 @@ public class UserService : IUserService
             {
                 return ResponseDto.Error<UserResponseDto>("Ya existe un usuario con el mismo nombre de usuario o empleado.");
             }
-            _userRepository.Insert(user);
+            if (validationUser == null)
+                _userRepository.Insert(user);
             result.Data = _mapper.Map<UserResponseDto>(user);
         }
         catch (Exception ex)
