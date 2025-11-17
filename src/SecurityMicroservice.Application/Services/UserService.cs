@@ -65,31 +65,32 @@ public class UserService : IUserService
                 EmployeeId = request.EmployeeId,
                 Status = UserStatus.Active
             };
-            var validationUser = await _userRepository.GetFirstOrDefaultAsync(filter: x => x.UserName == request.Username && (!request.EmployeeId.HasValue || x.EmployeeId == request.EmployeeId));
-            
-                
-            if (validationUser.Status == UserStatus.Inactive)
-            {
-                return ResponseDto.Error<UserResponseDto>("El usuario asociado a este nombre de usuario o empleado está inactivo.");
-            }
-            if (validationUser.Status == UserStatus.Locked)
-            {
-                return ResponseDto.Error<UserResponseDto>("El usuario asociado a este nombre de usuario o empleado está bloqueado.");
-            }
-            if (validationUser.Status == UserStatus.Suspended)
-            {
-                return ResponseDto.Error<UserResponseDto>("El usuario asociado a este nombre de usuario o empleado está suspendido.");
-            }
-            if (validationUser.Status == UserStatus.Active)
-            {
-                return ResponseDto.Error<UserResponseDto>("Ya existe un usuario con el mismo nombre de usuario o empleado.");
-            }
+            var validationUser = await _userRepository.GetFirstOrDefaultAsync(
+    filter: x => x.UserName == request.Username
+              && (!request.EmployeeId.HasValue || x.EmployeeId == request.EmployeeId)
+);
+
             if (validationUser != null)
             {
+                switch (validationUser.Status)
+                {
+                    case UserStatus.Inactive:
+                        return ResponseDto.Error<UserResponseDto>("El usuario asociado a este nombre de usuario o empleado está inactivo.");
+
+                    case UserStatus.Locked:
+                        return ResponseDto.Error<UserResponseDto>("El usuario asociado a este nombre de usuario o empleado está bloqueado.");
+
+                    case UserStatus.Suspended:
+                        return ResponseDto.Error<UserResponseDto>("El usuario asociado a este nombre de usuario o empleado está suspendido.");
+
+                    case UserStatus.Active:
+                        return ResponseDto.Error<UserResponseDto>("Ya existe un usuario con el mismo nombre de usuario o empleado.");
+                }
+
                 return ResponseDto.Error<UserResponseDto>("Ya existe un usuario con el mismo nombre de usuario o empleado.");
             }
-            if (validationUser == null)
-                _userRepository.Insert(user);
+
+            _userRepository.Insert(user);
             result.Data = _mapper.Map<UserResponseDto>(user);
         }
         catch (Exception ex)
