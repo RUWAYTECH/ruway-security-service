@@ -1,4 +1,5 @@
 ﻿using Azure;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -32,16 +33,7 @@ public class AuthController : ControllerBase
     [HttpPost("token")]
     public async Task<IActionResult> Exchange()
     {
-        // Parse OpenID Connect request manually from form data
-        var request = new OpenIddictRequest();
-        
-        if (Request.HasFormContentType)
-        {
-            foreach (var parameter in Request.Form)
-            {
-                request.SetParameter(parameter.Key, parameter.Value.ToString());
-            }
-        }
+        var request = HttpContext.GetOpenIddictServerRequest()  ?? throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
 
         bool useRecaptcha = Convert.ToBoolean(_configuration["Recaptcha:UseRecaptcha"]);
         var recaptchaToken = (string?)request.GetParameter("recaptchaToken");
@@ -173,14 +165,8 @@ public class AuthController : ControllerBase
     [HttpGet("authorize")]
     public IActionResult Authorize()
     {
-        // Parse OpenID Connect request manually from query parameters
-        var request = new OpenIddictRequest();
+        var request = HttpContext.GetOpenIddictServerRequest() ?? throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
         
-        foreach (var parameter in Request.Query)
-        {
-            request.SetParameter(parameter.Key, parameter.Value.ToString());
-        }
-
         // Validate the authorization request
         if (string.IsNullOrEmpty(request.ClientId))
         {
@@ -261,16 +247,7 @@ public class AuthController : ControllerBase
     [HttpPost("authorize")]
     public IActionResult Accept([FromForm] string? submit)
     {
-        // Parse OpenID Connect request manually from form data
-        var request = new OpenIddictRequest();
-        
-        if (Request.HasFormContentType)
-        {
-            foreach (var parameter in Request.Form)
-            {
-                request.SetParameter(parameter.Key, parameter.Value.ToString());
-            }
-        }
+        var request = HttpContext.GetOpenIddictServerRequest()  ?? throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
 
         // Check if user denied the authorization
         if (string.Equals(submit, "deny", StringComparison.InvariantCultureIgnoreCase))
@@ -390,21 +367,39 @@ public class AuthController : ControllerBase
         
         if (!result.Succeeded)
         {
-            return CreateRefreshTokenError("Invalid refresh token.");
+            return Forbid(
+                authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                properties: new AuthenticationProperties(new Dictionary<string, string?>
+                {
+                    [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidGrant,
+                    [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "El refresh token es inválido o ha expirado."
+                }));
         }
 
         // Extract and validate user ID from the refresh token
         var userId = result.Principal?.GetClaim(Claims.Subject);
         if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userGuid))
         {
-            return CreateRefreshTokenError("Invalid user identifier in refresh token.");
+            return Forbid(
+                authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                properties: new AuthenticationProperties(new Dictionary<string, string?>
+                {
+                    [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidGrant,
+                    [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "El usuario asociado con el refresh token no puede ser encontrado."
+                }));
         }
 
         // Validate user still exists and is active using application service
         var user = await _authenticationService.GetUserByIdAsync(userGuid);
         if (user == null || user.Status != UserStatus.Active)
         {
-            return CreateRefreshTokenError("User is no longer active or does not exist.");
+            return Forbid(
+                authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                properties: new AuthenticationProperties(new Dictionary<string, string?>
+                {
+                    [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidGrant,
+                    [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "La cuenta de usuario ya no es válida."
+                }));
         }
 
         // Generate fresh token response with updated user data
@@ -413,11 +408,25 @@ public class AuthController : ControllerBase
         // Create new identity with fresh claims
         var identity = CreateUserIdentity(user, tokenResponse);
 
-        // Preserve the scopes from the original token
-        identity.SetScopes(result.Principal?.GetScopes() ?? ImmutableArray<string>.Empty);
+        // Restore the scopes and resources from the original refresh token
+        if (result.Principal != null)
+        {
+            identity.SetScopes(result.Principal.GetScopes());
+            
+            var resources = result.Principal.GetResources();
+            if (resources.Any())
+            {
+                identity.SetResources(resources);
+            }
+        }
+
+        // Set the destinations for all claims using the existing GetDestinations method
         identity.SetDestinations(GetDestinations);
 
-        return SignIn(new ClaimsPrincipal(identity), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+        var principal = new ClaimsPrincipal(identity);
+
+        // Return the sign-in result with the correct scheme
+        return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
     }
 
     /// <summary>

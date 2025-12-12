@@ -104,7 +104,7 @@ public class AuthenticationService : IAuthenticationService
             };
         }
 
-        user.PasswordResetToken = _passwordService.GenerateRandomToken();
+        user.PasswordResetToken = Guid.NewGuid().ToString();
         user.PasswordResetTokenExpires = DateTime.UtcNow.AddHours(1);
 
         _userRepository.Update(user);
@@ -129,6 +129,7 @@ public class AuthenticationService : IAuthenticationService
 
             if (user == null)
             {
+                response.Message = "El token de restablecimiento de contraseña no es válido.";
                 return response;
             }
 
@@ -145,7 +146,7 @@ public class AuthenticationService : IAuthenticationService
         }
         catch (Exception ex)
         {
-
+            response.Message = ex.Message;
             return response;
         }
     }
