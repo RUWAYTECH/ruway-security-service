@@ -15,10 +15,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecurityMicroservice.Shared
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecurityMicroservice.UnitTests", "tests\SecurityMicroservice.UnitTests\SecurityMicroservice.UnitTests.csproj", "{F6789012-3456-7890-F012-678901234567}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ruway.Events.Command.Interfaces", "..\ruway-rabbitmq-events-shared\Ruway.Events.Command.Interfaces\Ruway.Events.Command.Interfaces.csproj", "{CD75A93A-1DAD-424B-8F86-98465979343B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ruway.Events.Command", "..\ruway-rabbitmq-events-shared\Ruway.Events.Command\Ruway.Events.Command.csproj", "{65126AA5-ADB8-4B44-BA96-B55166668930}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -101,30 +97,6 @@ Global
 		{F6789012-3456-7890-F012-678901234567}.Release|x64.Build.0 = Release|Any CPU
 		{F6789012-3456-7890-F012-678901234567}.Release|x86.ActiveCfg = Release|Any CPU
 		{F6789012-3456-7890-F012-678901234567}.Release|x86.Build.0 = Release|Any CPU
-		{CD75A93A-1DAD-424B-8F86-98465979343B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CD75A93A-1DAD-424B-8F86-98465979343B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CD75A93A-1DAD-424B-8F86-98465979343B}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{CD75A93A-1DAD-424B-8F86-98465979343B}.Debug|x64.Build.0 = Debug|Any CPU
-		{CD75A93A-1DAD-424B-8F86-98465979343B}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{CD75A93A-1DAD-424B-8F86-98465979343B}.Debug|x86.Build.0 = Debug|Any CPU
-		{CD75A93A-1DAD-424B-8F86-98465979343B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CD75A93A-1DAD-424B-8F86-98465979343B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CD75A93A-1DAD-424B-8F86-98465979343B}.Release|x64.ActiveCfg = Release|Any CPU
-		{CD75A93A-1DAD-424B-8F86-98465979343B}.Release|x64.Build.0 = Release|Any CPU
-		{CD75A93A-1DAD-424B-8F86-98465979343B}.Release|x86.ActiveCfg = Release|Any CPU
-		{CD75A93A-1DAD-424B-8F86-98465979343B}.Release|x86.Build.0 = Release|Any CPU
-		{65126AA5-ADB8-4B44-BA96-B55166668930}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{65126AA5-ADB8-4B44-BA96-B55166668930}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{65126AA5-ADB8-4B44-BA96-B55166668930}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{65126AA5-ADB8-4B44-BA96-B55166668930}.Debug|x64.Build.0 = Debug|Any CPU
-		{65126AA5-ADB8-4B44-BA96-B55166668930}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{65126AA5-ADB8-4B44-BA96-B55166668930}.Debug|x86.Build.0 = Debug|Any CPU
-		{65126AA5-ADB8-4B44-BA96-B55166668930}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{65126AA5-ADB8-4B44-BA96-B55166668930}.Release|Any CPU.Build.0 = Release|Any CPU
-		{65126AA5-ADB8-4B44-BA96-B55166668930}.Release|x64.ActiveCfg = Release|Any CPU
-		{65126AA5-ADB8-4B44-BA96-B55166668930}.Release|x64.Build.0 = Release|Any CPU
-		{65126AA5-ADB8-4B44-BA96-B55166668930}.Release|x86.ActiveCfg = Release|Any CPU
-		{65126AA5-ADB8-4B44-BA96-B55166668930}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
