@@ -1,6 +1,3 @@
-[submodule "ruway-rabbitmq-events-shared"]
-	path = ruway-rabbitmq-events-shared
-	url = https://github.com/RUWAYTECH/ruway-rabbitmq-events-shared.git
 [submodule "src/ruway-rabbitmq-events-shared"]
 	path = src/ruway-rabbitmq-events-shared
 	url = https://github.com/RUWAYTECH/ruway-rabbitmq-events-shared.git

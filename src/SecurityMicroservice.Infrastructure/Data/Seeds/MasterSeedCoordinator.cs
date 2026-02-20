@@ -2,6 +2,7 @@ using SecurityMicroservice.Infrastructure.Data.Seeds.Core;
 using SecurityMicroservice.Infrastructure.Data.Seeds.Clients.MEMOS;
 using SecurityMicroservice.Infrastructure.Data.Seeds.Clients.AUDITORIA;
 using SecurityMicroservice.Infrastructure.Services;
+using SecurityMicroservice.Infrastructure.Data.Seeds.Clients.SIZE;
 
 namespace SecurityMicroservice.Infrastructure.Data.Seeds;
 
@@ -42,8 +43,7 @@ public static class MasterSeedCoordinator
                 Console.WriteLine("\n📁 PHASE 2: Client-Specific Data");
                 Console.WriteLine("---------------------------------");
 
-                await MemosCoordinator.InitializeAsync(context, serviceProvider);
-                await AuditoriaCoordinator.InitializeAsync(context, serviceProvider);
+                await SizeCoordinator.InitializeAsync(context, serviceProvider);
             }
             else
             {
