@@ -76,7 +76,13 @@ public static class SizeRolesSeedData
             }
         };
 
-        await context.Roles.AddRangeAsync(sizeRoles);
+        foreach (var role in sizeRoles)
+        {
+            if (!await context.Roles.AnyAsync(r => r.Code == role.Code && r.ApplicationId == role.ApplicationId))
+            {
+                context.Roles.Add(role);
+            }
+        }
         await context.SaveChangesAsync();
     }
 }
