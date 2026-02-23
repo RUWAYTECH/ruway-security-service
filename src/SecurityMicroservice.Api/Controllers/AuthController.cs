@@ -137,7 +137,12 @@ public class AuthController : ControllerBase
         }
 
         var result = await _authenticationService.ForgotPasswordAsync(request);
-        return Ok(result);
+        if (result.Success)
+        {
+            return Ok(result);
+        }
+
+        return BadRequest(result);
     }
 
     [HttpPost("reset-password")]
