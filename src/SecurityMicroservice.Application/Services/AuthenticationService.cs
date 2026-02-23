@@ -78,8 +78,8 @@ public class AuthenticationService : IAuthenticationService
             // Don't reveal if user exists for security
             return new ForgotPasswordResponse
             {
-                Success = true,
-                Message = "If the username exists, a password reset email has been sent."
+                Success = false,
+                Message = "El correo o usuario proporcionado no existe."
             };
         }
 
@@ -92,7 +92,7 @@ public class AuthenticationService : IAuthenticationService
         return new ForgotPasswordResponse
         {
             Success = true,
-            Message = "If the username exists, a password reset email has been sent."
+            Message = "Se ha enviado un correo electrónico con instrucciones para restablecer la contraseña."
         };
     }
 
