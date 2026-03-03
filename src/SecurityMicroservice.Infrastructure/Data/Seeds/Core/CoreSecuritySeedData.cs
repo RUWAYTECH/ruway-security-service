@@ -193,6 +193,7 @@ public static class CoreSecuritySeedData
             UserName = "admin",
             PasswordHash = passwordService.HashPassword("admin123"),
             Status = UserStatus.Active,
+            IsExternal = false,
             EmployeeId = Guid.NewGuid(),
             CreatedAt = DateTime.UtcNow,
             LastLoginAt = null,

@@ -450,6 +450,7 @@ public class AuthController : ControllerBase
         identity.SetClaim(Claims.Subject, user.UserId.ToString())
                 .SetClaim(Claims.Name, user.UserName)
                 .SetClaim("employee_id", user.EmployeeId?.ToString())
+            .SetClaim("is_external", tokenResponse.IsExternal.ToString().ToLowerInvariant())
                 .SetClaim("first_name", user.FirstName)
                 .SetClaim("last_name", user.LastName)
                 .SetClaim("date_of_birth", user.DateOfBirth?.ToString("yyyy-MM-dd"))

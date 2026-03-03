@@ -74,6 +74,7 @@ public class AuthenticationService : IAuthenticationService
             Roles = roles,
             Permissions = permissions,
             EmployeeId = user.EmployeeId,
+            IsExternal = user.IsExternal,
             FirstName = user.FirstName,
             LastName = user.LastName,
             Email = user.Email,

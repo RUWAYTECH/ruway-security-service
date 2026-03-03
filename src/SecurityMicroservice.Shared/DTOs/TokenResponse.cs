@@ -10,6 +10,7 @@ public class TokenResponse
     public List<string> Roles { get; set; } = new();
     public List<string> Permissions { get; set; } = new();
     public Guid? EmployeeId { get; set; }
+    public bool IsExternal { get; set; }
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;

@@ -1,0 +1,36 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug SecurityMicroservice.Api",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-api",
+      "program": "${workspaceFolder}/src/SecurityMicroservice.Api/bin/Debug/net10.0/SecurityMicroservice.Api.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/SecurityMicroservice.Api",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    {
+      "name": "Debug Ruway.Security.Subscription.Hub",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-subscription-hub",
+      "program": "${workspaceFolder}/subscription/Ruway.Security.Subscription.Hub/bin/Debug/net10.0/Ruway.Security.Subscription.Hub.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/subscription/Ruway.Security.Subscription.Hub",
+      "stopAtEntry": false,
+      "env": {
+        "DOTNET_ENVIRONMENT": "Development",
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  ]
+}

@@ -62,8 +62,10 @@ public class UserService : IUserService
                 DateOfBirth = request.DateOfBirth ?? null,
                 Email = request.Email ?? "",
                 PhoneNumber = request.PhoneNumber ?? "",
+                IsExternal = request.IsExternal ?? false,
                 EmployeeId = request.EmployeeId,
-                Status = UserStatus.Active
+                Status = UserStatus.Active,
+                
             };
             var validationUser = await _userRepository.GetFirstOrDefaultAsync(
     filter: x => x.UserName == request.Username
@@ -75,13 +77,13 @@ public class UserService : IUserService
                 switch (validationUser.Status)
                 {
                     case UserStatus.Inactive:
-                        return ResponseDto.Error<UserResponseDto>("El usuario asociado a este nombre de usuario o empleado está inactivo.");
+                        return ResponseDto.Error<UserResponseDto>("El usuario asociado a este nombre de usuario o empleado estï¿½ inactivo.");
 
                     case UserStatus.Locked:
-                        return ResponseDto.Error<UserResponseDto>("El usuario asociado a este nombre de usuario o empleado está bloqueado.");
+                        return ResponseDto.Error<UserResponseDto>("El usuario asociado a este nombre de usuario o empleado estï¿½ bloqueado.");
 
                     case UserStatus.Suspended:
-                        return ResponseDto.Error<UserResponseDto>("El usuario asociado a este nombre de usuario o empleado está suspendido.");
+                        return ResponseDto.Error<UserResponseDto>("El usuario asociado a este nombre de usuario o empleado estï¿½ suspendido.");
 
                     case UserStatus.Active:
                         return ResponseDto.Error<UserResponseDto>("Ya existe un usuario con el mismo nombre de usuario o empleado.");
@@ -119,6 +121,7 @@ public class UserService : IUserService
             entity.DateOfBirth = request.DateOfBirth ?? entity.DateOfBirth;
             entity.Email = string.IsNullOrWhiteSpace(request.Email) ? entity.Email : request.Email;
             entity.PhoneNumber = string.IsNullOrWhiteSpace(request.PhoneNumber) ? entity.PhoneNumber : request.PhoneNumber;
+            entity.IsExternal = request.IsExternal ?? entity.IsExternal;
             entity.EmployeeId = request.EmployeeId != Guid.Empty ? request.EmployeeId : entity.EmployeeId;
             entity.Status = !string.IsNullOrWhiteSpace(request.Status) && Enum.TryParse<UserStatus>(request.Status, true, out var parsedStatus)
                             ? parsedStatus

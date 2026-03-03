@@ -21,6 +21,12 @@ namespace SecurityMicroservice.Application.Services
             Guid.TryParse(employeeId, out Guid outEmployeeId);
             response.EmployeeId = outEmployeeId;
 
+            var isExternal = httpContextAccessor?.HttpContext?.User?.FindFirst("is_external")?.Value;
+            if (bool.TryParse(isExternal, out var parsedIsExternal))
+            {
+                response.IsExternal = parsedIsExternal;
+            }
+
 
             var userId = httpContextAccessor?.HttpContext?.User?.FindFirst(Constants.ClaimNames.UserId)?.Value;
             Guid.TryParse(userId, out Guid outUserId);

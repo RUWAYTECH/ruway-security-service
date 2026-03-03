@@ -23,6 +23,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.Status)
             .IsRequired()
             .HasConversion<int>();
+
+        builder.Property(u => u.IsExternal)
+            .IsRequired();
         
         builder.Property(u => u.CreatedAt)
             .IsRequired();

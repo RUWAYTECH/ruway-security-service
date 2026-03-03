@@ -10,6 +10,7 @@
         public DateTime? DateOfBirth { get; set; }
         public string? PhoneNumber { get; set; }
         public string? Status { get; set; }
+        public bool? IsExternal { get; set; }
         public Guid? EmployeeId { get; set; }
     }
 }

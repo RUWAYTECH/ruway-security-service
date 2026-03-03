@@ -23,6 +23,7 @@ namespace SecurityMicroservice.Domain.Constants
             public const string TokenName = "tokenName";
             public const string VigenciaToken = "vigenciaToken";
             public const string EmployeeId = "employeeId";
+            public const string IsExternal = "isExternal";
             public const string Profiles = "profiles";
             public const string FullName = "fullName";
             public const string Position = "position";

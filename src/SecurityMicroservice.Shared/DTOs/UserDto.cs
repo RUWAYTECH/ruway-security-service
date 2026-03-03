@@ -10,6 +10,7 @@ public class UserDto
     public string? DateOfBirth { get; set; }
     public string? PhoneNumber { get; set; }
     public string Status { get; set; } = string.Empty;
+    public bool IsExternal { get; set; }
     public Guid? EmployeeId { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? LastLoginAt { get; set; }
