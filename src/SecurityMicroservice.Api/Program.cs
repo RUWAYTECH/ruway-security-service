@@ -21,7 +21,7 @@ builder.Configuration.GetSection("TokenConfiguration").Bind(tokenConfig);
 // Configure Kestrel for HTTPS
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenLocalhost(5000); // HTTP
+    options.ListenLocalhost(6000); // HTTP
     options.ListenLocalhost(7001, listenOptions =>
     {
         listenOptions.UseHttps(); // HTTPS
