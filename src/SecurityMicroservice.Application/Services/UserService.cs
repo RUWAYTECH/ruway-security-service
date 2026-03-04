@@ -67,10 +67,14 @@ public class UserService : IUserService
                 Status = UserStatus.Active,
                 
             };
+            if (request.UserId.HasValue)
+            {
+                user.UserId = request.UserId.Value;
+            }
             var validationUser = await _userRepository.GetFirstOrDefaultAsync(
-    filter: x => x.UserName == request.Username
-              && (!request.EmployeeId.HasValue || x.EmployeeId == request.EmployeeId)
-);
+                filter: x => x.UserName == request.Username
+                        && (!request.EmployeeId.HasValue || x.EmployeeId == request.EmployeeId)
+            );
 
             if (validationUser != null)
             {
