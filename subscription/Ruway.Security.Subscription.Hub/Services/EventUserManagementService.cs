@@ -1,7 +1,9 @@
+using Rokys.Memo.Common.Constant;
+using Ruway.Events.Command.Interfaces.Events;
+using Ruway.Security.Subscription.Hub.Models;
 using SecurityMicroservice.Application.IServices;
 using SecurityMicroservice.Shared.Request.User;
-using Ruway.Security.Subscription.Hub.Models;
-using Ruway.Events.Command.Interfaces.Events;
+using System.Numerics;
 
 namespace Ruway.Security.Subscription.Hub.Services;
 
@@ -43,7 +45,7 @@ public class EventUserManagementService
                 BirthDate = peopleEvent.BirthDate,
                 UserType = "People",
                 IsExternal = peopleEvent.IsExternal,
-                Relationship = peopleEvent.Relationship,
+                //Relationship = peopleEvent.Relationship,
                 IsActive = peopleEvent.IsActive
             };
 
@@ -95,19 +97,21 @@ public class EventUserManagementService
             else
             {
                 _logger.LogInformation("Usuario no encontrado para persona {PeopleId}, creando nuevo usuario", peopleEvent.PeopleId);
-                return await CreateUserFromPeopleAsync(new PeopleCreatedEvent(
-                    peopleEvent.PeopleId,
-                    peopleEvent.EmployeeId,
-                    peopleEvent.FirstName,
-                    peopleEvent.LastName,
-                    peopleEvent.DocumentNumber,
-                    peopleEvent.Email,
-                    peopleEvent.Phone,
-                    peopleEvent.Relationship,
-                    peopleEvent.IsExternal,
-                    peopleEvent.BirthDate,
-                    peopleEvent.IsActive
-                ));
+                //return await CreateUserFromPeopleAsync(new PeopleCreatedEvent(
+                //    peopleEvent.PeopleId,
+                //    peopleEvent.EmployeeId,
+                //    peopleEvent.FirstName,
+                //    peopleEvent.LastName,
+                //    peopleEvent.DocumentNumber,
+                //    peopleEvent.Email,
+                //    peopleEvent.PersonalEmail,
+                //    peopleEvent.Phone,
+                //    //peopleEvent.Relationship,
+                //    peopleEvent.IsExternal,
+                //    peopleEvent.BirthDate,
+                //    peopleEvent.IsActive,
+                //));
+                return UserCreationResult.CreateError($"Error actualizando usuario: {string.Join(", ", "hola")}");
             }
         }
         catch (Exception ex)

@@ -474,3 +474,6 @@ docker-compose.override.yml
 
 # JWT Keys
 jwt-keys/
+
+# Nuget
+Nuget.config
