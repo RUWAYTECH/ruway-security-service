@@ -94,7 +94,7 @@ public class UserApplicationService : IUserApplicationService
         return result.Data;
     }
 
-    public async Task<ResponseDto<UserApplicationDto>> CreateAsync(CreateUserApplicationRequest request)
+    public async Task<ResponseDto<UserApplicationDto>> CreateAsync(CreateUserApplicationRequest request, bool isPublishEvent = true)
     {
         var result = ResponseDto.Create<UserApplicationDto>();
         try
@@ -127,7 +127,10 @@ public class UserApplicationService : IUserApplicationService
                             result.Messages.AddRange(userRoles.Messages);
                         }
                     }
-                    await PublishEventsAsync(exists.UserId, exists.ApplicationId);
+                    if (isPublishEvent)
+                    {
+                        await PublishEventsAsync(exists.UserId, exists.ApplicationId);
+                    }
                     return result;
                 }
             }

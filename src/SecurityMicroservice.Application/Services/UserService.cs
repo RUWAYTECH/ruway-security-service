@@ -53,24 +53,6 @@ public class UserService : IUserService
         var result = ResponseDto.Create<UserResponseDto>();
         try
         {
-            var user = new User
-            {
-                UserName = request.Username,
-                PasswordHash = _passwordService.HashPassword(request.Password),
-                FirstName = request.FirstName ?? "",
-                LastName = request.LastName ?? "",
-                DateOfBirth = request.DateOfBirth ?? null,
-                Email = request.Email ?? "",
-                PhoneNumber = request.PhoneNumber ?? "",
-                IsExternal = request.IsExternal ?? false,
-                EmployeeId = request.EmployeeId,
-                Status = UserStatus.Active,
-                
-            };
-            if (request.UserId.HasValue)
-            {
-                user.UserId = request.UserId.Value;
-            }
             var validationUser = await _userRepository.GetFirstOrDefaultAsync(
                 filter: x => x.UserName == request.Username
                         && (!request.EmployeeId.HasValue || x.EmployeeId == request.EmployeeId)
@@ -95,8 +77,27 @@ public class UserService : IUserService
 
                 return ResponseDto.Error<UserResponseDto>("Ya existe un usuario con el mismo nombre de usuario o empleado.");
             }
+            var user = new User
+            {
+                UserName = request.Username,
+                PasswordHash = _passwordService.HashPassword(request.Password),
+                FirstName = request.FirstName ?? "",
+                LastName = request.LastName ?? "",
+                DateOfBirth = request.DateOfBirth ?? null,
+                Email = request.Email ?? "",
+                PhoneNumber = request.PhoneNumber ?? "",
+                IsExternal = request.IsExternal ?? false,
+                EmployeeId = request.EmployeeId,
+                Status = UserStatus.Active,
+                
+            };
+            if (request.UserId.HasValue)
+            {
+                user.UserId = request.UserId.Value;
+            }
 
             _userRepository.Insert(user);
+
             result.Data = _mapper.Map<UserResponseDto>(user);
         }
         catch (Exception ex)

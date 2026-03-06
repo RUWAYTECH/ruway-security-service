@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -8,8 +8,8 @@
   <ItemGroup>
     <PackageReference Include="FluentValidation" Version="11.9.0" />
     <PackageReference Include="AutoMapper" Version="12.0.1" />
-    <PackageReference Include="Ruway.Events.Command" Version="1.0.0" />
-    <PackageReference Include="Ruway.Events.Command.Interfaces" Version="1.0.0" />
+    <PackageReference Include="Ruway.Events.Command" Version="1.0.2" />
+    <PackageReference Include="Ruway.Events.Command.Interfaces" Version="1.0.2" />
     <PackageReference Include="Scriban" Version="6.4.0" />
   </ItemGroup>
 

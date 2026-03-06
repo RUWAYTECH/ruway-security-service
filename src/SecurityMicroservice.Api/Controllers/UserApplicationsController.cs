@@ -78,7 +78,7 @@ public class UserApplicationsController : ControllerBase
     public async Task<ActionResult<UserApplicationDto>> CreateUserApplication(CreateUserApplicationRequest request)
     {
 
-        var result = await _userApplicationService.CreateAsync(request);
+        var result = await _userApplicationService.CreateAsync(request, true);
         if (result.IsValid)
         {
             return CreatedAtAction(nameof(CreateUserApplication), new { userId = result.Data.UserId, applicationId = result.Data.ApplicationId }, result.Data);

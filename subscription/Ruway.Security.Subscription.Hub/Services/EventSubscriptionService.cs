@@ -100,7 +100,7 @@ public class EventSubscriptionService : BackgroundService
         {
             _logger.LogInformation(
                 "Procesando evento PeopleCreated para persona {PeopleId}: {FirstName} {LastName}, Empleado: {EmployeeId}",
-                peopleCreated.PeopleId,
+                peopleCreated.UserReferenceId,
                 peopleCreated.FirstName,
                 peopleCreated.LastName,
                 peopleCreated.EmployeeId);
@@ -108,13 +108,13 @@ public class EventSubscriptionService : BackgroundService
             using var scope = _serviceProvider.CreateScope();
             var userManagementService = scope.ServiceProvider.GetRequiredService<EventUserManagementService>();
 
-            var result = await userManagementService.CreateUserFromPeopleAsync(peopleCreated);
+            var result = await userManagementService.CreateUserAsync(peopleCreated);
 
             if (result.Success)
             {
                 _logger.LogInformation(
                     "Usuario creado exitosamente para persona {PeopleId}. UserId: {UserId}, Username: {Username}",
-                    peopleCreated.PeopleId,
+                    peopleCreated.UserReferenceId,
                     result.UserId,
                     result.GeneratedUsername);
 
@@ -124,14 +124,14 @@ public class EventSubscriptionService : BackgroundService
             {
                 _logger.LogError(
                     "Error creando usuario para persona {PeopleId}: {Error}",
-                    peopleCreated.PeopleId,
+                    peopleCreated.UserReferenceId,
                     result.Message);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error procesando PeopleCreated para persona {PeopleId}", 
-                peopleCreated.PeopleId);
+            _logger.LogError(ex, "Error procesando PeopleCreated para persona {UserReferenceId}", 
+                peopleCreated.UserReferenceId);
         }
     }
 
@@ -140,8 +140,8 @@ public class EventSubscriptionService : BackgroundService
         try
         {
             _logger.LogInformation(
-                "Procesando evento PeopleUpdated para persona {PeopleId}: {FirstName} {LastName}, Empleado: {EmployeeId}",
-                peopleUpdated.PeopleId,
+                "Procesando evento PeopleUpdated para persona {UserReferenceId}: {FirstName} {LastName}, Empleado: {EmployeeId}",
+                peopleUpdated.UserReferenceId,
                 peopleUpdated.FirstName,
                 peopleUpdated.LastName,
                 peopleUpdated.EmployeeId);
@@ -154,22 +154,22 @@ public class EventSubscriptionService : BackgroundService
             if (result.Success)
             {
                 _logger.LogInformation(
-                    "Usuario actualizado exitosamente para persona {PeopleId}. UserId: {UserId}",
-                    peopleUpdated.PeopleId,
+                    "Usuario actualizado exitosamente para persona {UserReferenceId}. UserId: {UserId}",
+                    peopleUpdated.UserReferenceId,
                     result.UserId);
             }
             else
             {
                 _logger.LogError(
-                    "Error actualizando usuario para persona {PeopleId}: {Error}",
-                    peopleUpdated.PeopleId,
+                    "Error actualizando usuario para persona {UserReferenceId}: {Error}",
+                    peopleUpdated.UserReferenceId,
                     result.Message);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error procesando PeopleUpdated para persona {PeopleId}", 
-                peopleUpdated.PeopleId);
+            _logger.LogError(ex, "Error procesando PeopleUpdated para persona {UserReferenceId}", 
+                peopleUpdated.UserReferenceId);
         }
     }
 
@@ -209,8 +209,8 @@ public class EventSubscriptionService : BackgroundService
         try
         {
             _logger.LogInformation(
-                "USUARIO CREADO - Persona: {PeopleId}, Usuario: {UserId}, Username: {Username}, Email: {Email}, Empleado: {EmployeeId}",
-                peopleEvent.PeopleId,
+                "USUARIO CREADO - Persona: {UserReferenceId}, Usuario: {UserId}, Username: {Username}, Email: {Email}, Empleado: {EmployeeId}",
+                peopleEvent.UserReferenceId,
                 result.UserId,
                 result.GeneratedUsername,
                 peopleEvent.Email,
@@ -220,7 +220,7 @@ public class EventSubscriptionService : BackgroundService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error registrando creación de usuario para persona {PeopleId}", peopleEvent.PeopleId);
+            _logger.LogError(ex, "Error registrando creación de usuario para persona {UserReferenceId}", peopleEvent.UserReferenceId);
         }
     }
 

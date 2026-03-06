@@ -13,5 +13,6 @@
         public string? Status { get; set; }
         public bool? IsExternal { get; set; }
         public Guid? EmployeeId { get; set; }
+        public string? RoleCode { get; set; }
     }
 }

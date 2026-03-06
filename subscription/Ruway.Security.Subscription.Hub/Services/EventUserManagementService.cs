@@ -22,42 +22,6 @@ public class EventUserManagementService
         _serviceProvider = serviceProvider;
         _logger = logger;
     }
-
-    /// <summary>
-    /// Actualiza un usuario desde un evento de empleado actualizado
-    /// </summary>
-    /// <summary>
-    /// Crea un usuario desde un evento de persona creada
-    /// </summary>
-    public async Task<UserCreationResult> CreateUserFromPeopleAsync(PeopleCreatedEvent peopleEvent)
-    {
-        try
-        {
-            var userModel = new EventUserCreationModel
-            {
-                PeopleId = peopleEvent.PeopleId,
-                EmployeeId = peopleEvent.EmployeeId, // Para referencia
-                FirstName = peopleEvent.FirstName,
-                LastName = peopleEvent.LastName,
-                Email = peopleEvent.Email,
-                PhoneNumber = peopleEvent.Phone,
-                DocumentNumber = peopleEvent.DocumentNumber,
-                BirthDate = peopleEvent.BirthDate,
-                UserType = "People",
-                IsExternal = peopleEvent.IsExternal,
-                //Relationship = peopleEvent.Relationship,
-                IsActive = peopleEvent.IsActive
-            };
-
-            return await CreateUserAsync(userModel);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creando usuario desde evento de persona {PeopleId}", peopleEvent.PeopleId);
-            return UserCreationResult.CreateError($"Error procesando persona: {ex.Message}", ex);
-        }
-    }
-
     /// <summary>
     /// Actualiza un usuario desde un evento de persona actualizada
     /// </summary>
@@ -78,8 +42,8 @@ public class EventUserManagementService
                     LastName = peopleEvent.LastName,
                     Email = peopleEvent.Email,
                     PhoneNumber = peopleEvent.Phone,
-                    DateOfBirth = peopleEvent.BirthDate,
                     IsExternal = peopleEvent.IsExternal,
+                    RoleCode = peopleEvent.RoleCode,
                     Status = peopleEvent.IsActive ? "Active" : "Inactive"
                 };
 
@@ -96,27 +60,13 @@ public class EventUserManagementService
             }
             else
             {
-                _logger.LogInformation("Usuario no encontrado para persona {PeopleId}, creando nuevo usuario", peopleEvent.PeopleId);
-                //return await CreateUserFromPeopleAsync(new PeopleCreatedEvent(
-                //    peopleEvent.PeopleId,
-                //    peopleEvent.EmployeeId,
-                //    peopleEvent.FirstName,
-                //    peopleEvent.LastName,
-                //    peopleEvent.DocumentNumber,
-                //    peopleEvent.Email,
-                //    peopleEvent.PersonalEmail,
-                //    peopleEvent.Phone,
-                //    //peopleEvent.Relationship,
-                //    peopleEvent.IsExternal,
-                //    peopleEvent.BirthDate,
-                //    peopleEvent.IsActive,
-                //));
-                return UserCreationResult.CreateError($"Error actualizando usuario: {string.Join(", ", "hola")}");
+                _logger.LogInformation("Usuario no encontrado para persona {PeopleId}, creando nuevo usuario", peopleEvent.UserReferenceId);
+                return await CreateUserAsync(new PeopleCreatedEvent(peopleEvent.UserReferenceId, peopleEvent.EmployeeId, peopleEvent.FirstName, peopleEvent.LastName, peopleEvent.DocumentNumber, peopleEvent.Email, peopleEvent.PersonalEmail, peopleEvent.Phone, peopleEvent.RoleCode, peopleEvent.IsExternal, peopleEvent.IsActive));
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error actualizando usuario desde evento de persona {PeopleId}", peopleEvent.PeopleId);
+            _logger.LogError(ex, "Error actualizando usuario desde evento de persona {PeopleId}", peopleEvent.UserReferenceId);
             return UserCreationResult.CreateError($"Error procesando actualización de persona: {ex.Message}", ex);
         }
     }
@@ -124,7 +74,7 @@ public class EventUserManagementService
     /// <summary>
     /// Crea un usuario genérico desde un modelo de evento
     /// </summary>
-    private async Task<UserCreationResult> CreateUserAsync(EventUserCreationModel userModel)
+    public async Task<UserCreationResult> CreateUserAsync(PeopleCreatedEvent userModel)
     {
         try
         {
@@ -135,15 +85,16 @@ public class EventUserManagementService
 
             var userRequest = new UserRequestDto
             {
+                UserId = userModel.UserReferenceId,
                 Username = userModel.DocumentNumber,
                 Password = temporaryPassword,
                 FirstName = userModel.FirstName,
                 LastName = userModel.LastName,
                 Email = userModel.Email,
-                PhoneNumber = userModel.PhoneNumber,
-                DateOfBirth = userModel.BirthDate,
+                PhoneNumber = userModel.Phone,
                 IsExternal = userModel.IsExternal,
                 EmployeeId = userModel.EmployeeId,
+                RoleCode = userModel.RoleCode,
                 Status = userModel.IsActive ? "Active" : "Inactive"
             };
 
@@ -154,7 +105,7 @@ public class EventUserManagementService
                 _logger.LogInformation(
                     "Usuario creado exitosamente: {UserId} para {UserType} {Name}",
                     result.Data.UserId,
-                    userModel.UserType,
+                    userModel.IsExternal ? "Empleado" : "Beneficiario",
                     $"{userModel.FirstName} {userModel.LastName}"
                 );
 
