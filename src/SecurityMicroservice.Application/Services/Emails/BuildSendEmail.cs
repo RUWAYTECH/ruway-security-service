@@ -31,7 +31,9 @@ namespace SecurityMicroservice.Application.Services.Emails
                 ["LoginUrl"] = $"{urlApp}"
             };
 
-            var templateText = File.ReadAllText(MailTemplate.CreateUser);
+            var emailTemplate = Path.Combine(AppContext.BaseDirectory, MailTemplate.CreateUser);
+
+            var templateText = File.ReadAllText(emailTemplate);
             var template = Template.Parse(templateText);
             var htmlBody = template.Render(inputTexts);
 

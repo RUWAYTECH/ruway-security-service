@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SecurityMicroservice.Application.IServices;
 using SecurityMicroservice.Application.Services.Emails;
@@ -21,18 +22,22 @@ public class UserService : IUserService
     private readonly IEmailService _emailService;
     private readonly WebAppSettings _webAppSettings;
 
+    private readonly ILogger<UserService> _logger;
+    
     public UserService(
         IUserRepository userRepository,
         IPasswordService passwordService,
         IMapper mapper,
         IEmailService emailService,
-        IOptions<WebAppSettings> webAppSettings)
+        IOptions<WebAppSettings> webAppSettings,
+        ILogger<UserService> logger)
     {
         _userRepository = userRepository;
         _passwordService = passwordService;
         _mapper = mapper;
         _emailService = emailService;
         _webAppSettings = webAppSettings.Value;
+        _logger = logger;
     }
 
     public async Task<List<UserDto>> GetAllUsersAsync()
@@ -110,7 +115,7 @@ public class UserService : IUserService
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error enviando email de creación de usuario: {ex.Message}");
+                 _logger.LogError(ex, "Error en enviar el correo de creación de usuario para {Email}", user.Email);
             }
             result.Data = _mapper.Map<UserResponseDto>(user);
         }
