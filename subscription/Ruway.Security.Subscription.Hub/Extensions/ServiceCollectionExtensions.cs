@@ -23,6 +23,7 @@ public static class ServiceCollectionExtensions
         // Registrar configuración de RabbitMQ
         services.Configure<RabbitMQSettings>(configuration.GetSection("RabbitMQ"));
         services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
+        services.Configure<WebAppSettings>(configuration.GetSection("WebApp"));
         
         // Configurar Entity Framework
         services.AddDbContext<SecurityDbContext>(options =>
