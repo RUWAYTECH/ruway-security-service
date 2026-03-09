@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Cuenta creada - Mi Talla</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f4f7f9;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 500px;
+            margin: 40px auto;
+            background: #ffffff;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 4px 12px rgba(0, 79, 113, 0.15);
+            padding: 32px 28px;
+            border-top: 4px solid #004F71;
+        }
+        .header {
+            color: #004F71;
+            font-size: 1.6em;
+            font-weight: bold;
+            margin-bottom: 18px;
+        }
+        .info {
+            margin-bottom: 18px;
+        }
+        .label {
+            color: #004F71;
+            font-weight: 600;
+        }
+        .credentials {
+            background: #f2f6f8;
+            border-radius: 6px;
+            padding: 16px;
+            margin-top: 15px;
+            font-size: 0.95em;
+            border: 1px solid #e1e7eb;
+        }
+        .credentials p {
+            margin: 6px 0;
+        }
+        .footer {
+            font-size: 0.95em;
+            color: #555;
+            margin-top: 28px;
+            text-align: center;
+            line-height: 1.5;
+        }
+        .button {
+            display: inline-block;
+            background: #004F71;
+            color: #FFFFFF;
+            padding: 12px 26px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 18px;
+        }
+        .button:hover {
+            background: #00364D;
+        }
+        .text {
+            font-size: 1.05em;
+            color: #333;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">Tu cuenta ha sido creada</div>
+        <div class="info">
+            <p class="text">
+                Hola <span class="label">{{ EmployeeFullName }}</span>,<br><br>
+                Te informamos que tu cuenta ha sido creada correctamente en el sistema <strong>Mi Talla</strong>.
+            </p>
+
+            <p class="text">
+                A continuación encontrarás tus credenciales de acceso:
+            </p>
+
+            <div class="credentials">
+                <p><strong>Usuario:</strong> {{ Username }}</p>
+                <p><strong>Contraseña temporal:</strong> {{ Password }}</p>
+            </div>
+
+            <p class="text" style="margin-top:18px;">
+                Por motivos de seguridad, te recomendamos cambiar tu contraseña antes de iniciar sesión por primera vez, desde la opción <a href="{{ LoginUrl }}/forgot-password">olvidé contraseña</a> en la página de inicio de sesión.
+            </p>
+
+            <div style="text-align:center;">
+                <a class="button" href="{{ LoginUrl }}">Ingresar al sistema</a>
+            </div>
+        </div>
+
+        <div class="footer">
+            Si tienes problemas para acceder o necesitas ayuda, por favor contacta al área de soporte.<br>
+            Este mensaje fue generado automáticamente por el sistema de <strong>Mi Talla</strong>.
+        </div>
+    </div>
+
+</body>
+</html>

@@ -12,6 +12,7 @@ using SecurityMicroservice.Infrastructure.Data;
 using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Http;
+using SecurityMicroservice.Shared.DTOs;
 
 namespace Ruway.Security.Subscription.Hub.Extensions;
 
@@ -21,6 +22,7 @@ public static class ServiceCollectionExtensions
     {
         // Registrar configuración de RabbitMQ
         services.Configure<RabbitMQSettings>(configuration.GetSection("RabbitMQ"));
+        services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
         
         // Configurar Entity Framework
         services.AddDbContext<SecurityDbContext>(options =>
@@ -48,6 +50,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserRoleRepository, UserRoleRepository>();
         services.AddScoped<IApplicationRepository, ApplicationRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
+
+        // Email service
+        services.AddScoped<IEmailService, EmailService>();
         
         // Registrar AutoMapper
         services.AddAutoMapper(typeof(SecurityMicroservice.Application.Mappings.MappingProfile));

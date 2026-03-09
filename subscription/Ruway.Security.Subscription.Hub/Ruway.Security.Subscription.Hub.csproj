@@ -45,4 +45,10 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Template\Mail\CreateUser.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

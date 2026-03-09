@@ -1,6 +1,7 @@
 using AutoMapper;
-using Ruway.Events.Command.Interfaces.Events;
+using Microsoft.Extensions.Options;
 using SecurityMicroservice.Application.IServices;
+using SecurityMicroservice.Application.Services.Emails;
 using SecurityMicroservice.Domain.Entities;
 using SecurityMicroservice.Infrastructure.IRepositories;
 using SecurityMicroservice.Infrastructure.Services;
@@ -17,15 +18,21 @@ public class UserService : IUserService
     private readonly IUserRepository _userRepository;
     private readonly IPasswordService _passwordService;
     private readonly IMapper _mapper;
+    private readonly IEmailService _emailService;
+    private readonly WebAppSettings _webAppSettings;
 
     public UserService(
         IUserRepository userRepository,
         IPasswordService passwordService,
-        IMapper mapper)
+        IMapper mapper,
+        IEmailService emailService,
+        IOptions<WebAppSettings> webAppSettings)
     {
         _userRepository = userRepository;
         _passwordService = passwordService;
         _mapper = mapper;
+        _emailService = emailService;
+        _webAppSettings = webAppSettings.Value;
     }
 
     public async Task<List<UserDto>> GetAllUsersAsync()
@@ -97,7 +104,7 @@ public class UserService : IUserService
             }
 
             _userRepository.Insert(user);
-
+            await BuildSendEmail.CreateUserEmail(_emailService, user.Email, user.FirstName, user.LastName, user.UserName, request.Password, _webAppSettings.Url);
             result.Data = _mapper.Map<UserResponseDto>(user);
         }
         catch (Exception ex)
