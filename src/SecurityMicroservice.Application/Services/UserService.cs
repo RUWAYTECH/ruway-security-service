@@ -104,7 +104,14 @@ public class UserService : IUserService
             }
 
             _userRepository.Insert(user);
+            try
+            {
             await BuildSendEmail.CreateUserEmail(_emailService, user.Email, user.FirstName, user.LastName, user.UserName, request.Password, _webAppSettings.Url);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error enviando email de creación de usuario: {ex.Message}");
+            }
             result.Data = _mapper.Map<UserResponseDto>(user);
         }
         catch (Exception ex)
