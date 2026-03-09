@@ -63,16 +63,16 @@ public class UserService : IUserService
                 switch (validationUser.Status)
                 {
                     case UserStatus.Inactive:
-                        return ResponseDto.Error<UserResponseDto>("El usuario asociado a este nombre de usuario o empleado est� inactivo.");
+                        return ResponseDto.Error<UserResponseDto>("El usuario asociado a este nombre de usuario o empleado está inactivo.");
 
                     case UserStatus.Locked:
-                        return ResponseDto.Error<UserResponseDto>("El usuario asociado a este nombre de usuario o empleado est� bloqueado.");
+                        return ResponseDto.Error<UserResponseDto>("El usuario asociado a este nombre de usuario o empleado está bloqueado.");
 
                     case UserStatus.Suspended:
-                        return ResponseDto.Error<UserResponseDto>("El usuario asociado a este nombre de usuario o empleado est� suspendido.");
+                        return ResponseDto.Error<UserResponseDto>("El usuario asociado a este nombre de usuario o empleado está suspendido.");
 
                     case UserStatus.Active:
-                        return ResponseDto.Error<UserResponseDto>("Ya existe un usuario con el mismo nombre de usuario o empleado.");
+                        return ResponseDto.Error<UserResponseDto>("Ya existe un usuario con el mismo nombre.");
                 }
 
                 return ResponseDto.Error<UserResponseDto>("Ya existe un usuario con el mismo nombre de usuario o empleado.");

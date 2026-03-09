@@ -10,6 +10,8 @@ using SecurityMicroservice.Infrastructure.Repositories;
 using SecurityMicroservice.Infrastructure.Services;
 using SecurityMicroservice.Infrastructure.Data;
 using AutoMapper;
+using MediatR;
+using Microsoft.AspNetCore.Http;
 
 namespace Ruway.Security.Subscription.Hub.Extensions;
 
@@ -26,14 +28,26 @@ public static class ServiceCollectionExtensions
             
         // Registrar servicios de eventos
         services.AddScoped<IEventSubscriber, EventSubscriber>();
+        services.AddScoped<IEventPublisher, EventPublisher>();
+        services.AddScoped<IMediator, Mediator>();
+        services.AddScoped<IRabbitMQService, RabbitMQService>();
+        services.AddScoped<IRoleService, RoleService>();
         
         // Registrar servicios de negocio
         services.AddScoped<EventUserManagementService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IPasswordService, PasswordService>();
-        
+        services.AddScoped<IUserApplicationService, UserApplicationService>();
+        services.AddScoped<IUserRoleService, UserRoleService>();
+        services.AddScoped<IApplicationService, ApplicationService>();
+        services.AddScoped<IHttpContextAccessor, HttpContextAccessor>();  
+              
         // Registrar repositorios
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IUserApplicationRepository, UserApplicationRepository>();
+        services.AddScoped<IUserRoleRepository, UserRoleRepository>();
+        services.AddScoped<IApplicationRepository, ApplicationRepository>();
+        services.AddScoped<IRoleRepository, RoleRepository>();
         
         // Registrar AutoMapper
         services.AddAutoMapper(typeof(SecurityMicroservice.Application.Mappings.MappingProfile));

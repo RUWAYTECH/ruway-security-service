@@ -48,7 +48,7 @@ public class EventUserManagementService
                 };
 
                 var updateResult = await userService.Update(existingUserResponse.UserId.Value, updateRequest);
-                
+
                 if (updateResult.IsValid && updateResult.Data != null)
                 {
                     return UserCreationResult.CreateSuccess(updateResult.Data.UserId, updateResult.Data.UserName, "");
@@ -61,7 +61,9 @@ public class EventUserManagementService
             else
             {
                 _logger.LogInformation("Usuario no encontrado para persona {PeopleId}, creando nuevo usuario", peopleEvent.UserReferenceId);
-                return await CreateUserAsync(new PeopleCreatedEvent(peopleEvent.UserReferenceId, peopleEvent.EmployeeId, peopleEvent.FirstName, peopleEvent.LastName, peopleEvent.DocumentNumber, peopleEvent.Email, peopleEvent.PersonalEmail, peopleEvent.Phone, peopleEvent.RoleCode, peopleEvent.IsExternal, peopleEvent.IsActive));
+                return await CreateUserAsync(new PeopleCreatedEvent(peopleEvent.UserReferenceId, peopleEvent.EmployeeId,
+                peopleEvent.FirstName, peopleEvent.LastName, peopleEvent.DocumentNumber, peopleEvent.Email, peopleEvent.PersonalEmail,
+                 peopleEvent.Phone, peopleEvent.ApplicationCode, peopleEvent.RoleCode, peopleEvent.IsExternal, peopleEvent.IsActive));
             }
         }
         catch (Exception ex)
@@ -108,7 +110,7 @@ public class EventUserManagementService
                     userModel.IsExternal ? "Empleado" : "Beneficiario",
                     $"{userModel.FirstName} {userModel.LastName}"
                 );
-
+                await AddUserToApp(userModel);
                 return UserCreationResult.CreateSuccess(result.Data.UserId, userModel.DocumentNumber, temporaryPassword);
             }
             else
@@ -150,5 +152,41 @@ public class EventUserManagementService
         var random = new Random();
         return new string(Enumerable.Repeat(chars, 12)
             .Select(s => s[random.Next(s.Length)]).ToArray());
+    }
+
+    private async Task AddUserToApp(PeopleCreatedEvent peopleCreatedEvent)
+    {
+        try
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var userAppService = scope.ServiceProvider.GetRequiredService<IUserApplicationService>();
+            var appService = scope.ServiceProvider.GetRequiredService<IApplicationService>();
+            var roleService = scope.ServiceProvider.GetRequiredService<IRoleService>();
+            var app = await appService.GetByCodeAsync(peopleCreatedEvent.ApplicationCode??"MITALLA");
+            var roles = await roleService.GetByApplicationIdAsync(app.Data.ApplicationId);
+            var roleId = roles.FirstOrDefault(a => a.Code == peopleCreatedEvent.RoleCode);
+
+            if (roleId == null)
+            {
+                _logger.LogWarning("No se encontró el rol {RoleCode} para la aplicación {AppCode}", peopleCreatedEvent.RoleCode, peopleCreatedEvent.ApplicationCode);
+                return;
+            }
+
+            await userAppService.CreateAsync(new SecurityMicroservice.Shared.Request.UserApplication.CreateUserApplicationRequest
+            {
+                UserId = peopleCreatedEvent.UserReferenceId,
+                ApplicationId = app.Data.ApplicationId,
+                RoleIds = new List<Guid>()
+                {
+                     roleId.RoleId
+                }
+            }, isPublishEvent: false);
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error agregando usuario a la aplicación para persona {PeopleId}", peopleCreatedEvent.UserReferenceId);
+        }
+        // Aquí podríamos agregar lógica para asignar el usuario a una aplicación específica si es necesario
     }
 }

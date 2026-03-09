@@ -76,9 +76,8 @@ public class RoleService : IRoleService
 
     public async Task<List<RoleDto>> GetByApplicationIdAsync(Guid applicationId)
     {
-        var allRoles = await _roleRepository.GetAllAsync();
-        var roles = allRoles.Where(x => x.ApplicationId == applicationId && x.IsActive).ToList();
-        return _mapper.Map<List<RoleDto>>(roles);
+        var allRoles = await _roleRepository.GetAsync(a=> a.Application.ApplicationId == applicationId);
+        return _mapper.Map<List<RoleDto>>(allRoles);
     }
 
     public async Task<ResponseDto<RoleDto>> CreateAsync(CreateRoleRequest request)
