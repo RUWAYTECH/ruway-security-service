@@ -9,10 +9,11 @@ public class Program
     public static async Task Main(string[] args)
     {
         // Configurar Serilog
+        var logPath = Path.Combine(AppContext.BaseDirectory, "logs", "ruway-security-subscription-.txt");
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Information()
             .WriteTo.Console()
-            .WriteTo.File("logs/ruway-security-subscription-.txt", rollingInterval: RollingInterval.Day)
+            .WriteTo.File(logPath, rollingInterval: RollingInterval.Day)
             .CreateLogger();
 
         try
