@@ -1,7 +1,5 @@
 using Ruway.Events.Command.Interfaces.Events;
 using Ruway.Events.Command.Interfaces.Constants;
-using Ruway.Security.Subscription.Hub.Services;
-using RabbitMQ.Client.Exceptions;
 
 namespace Ruway.Security.Subscription.Hub.Services;
 
