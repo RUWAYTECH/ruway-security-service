@@ -9,5 +9,7 @@ namespace SecurityMicroservice.Application.IServices
     public interface IUserService : IBaseService<UserRequestDto, UserResponseDto>
     {
         Task<ResponseDto<PaginationResponseDto<UserResponseDto>>> GetPaged(UserPaginationRequestDto requestDto);
+
+        public Task<ResponseDto<BaseUserRequestDto>> UpdatePartial(Guid id, BaseUserRequestDto requestDto);
     }
 }

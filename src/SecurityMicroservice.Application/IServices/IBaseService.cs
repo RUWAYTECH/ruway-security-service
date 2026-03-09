@@ -1,4 +1,5 @@
-﻿using SecurityMicroservice.Shared.Response.Common;
+﻿using SecurityMicroservice.Shared.Request.User;
+using SecurityMicroservice.Shared.Response.Common;
 
 namespace SecurityMicroservice.Application.IServices
 {

@@ -126,43 +126,6 @@ public class UserService : IUserService
         return result;
     }
 
-    public async Task<ResponseDto<UserResponseDto>> Update(object userId, UserRequestDto request)
-    {
-        var result = ResponseDto.Create<UserResponseDto>();
-        try
-        {
-            var entity = await _userRepository.GetByKeyAsync(userId);
-            if (entity == null)
-            {
-                result = ResponseDto.Error<UserResponseDto>("No se pudo encontrar el permiso");
-                return result;
-            }
-
-            entity.UserName = string.IsNullOrWhiteSpace(request.Username) ? entity.UserName : request.Username;
-            entity.PasswordHash = string.IsNullOrWhiteSpace(request.Password) ? entity.PasswordHash : _passwordService.HashPassword(request.Password);
-            entity.FirstName = string.IsNullOrWhiteSpace(request.FirstName) ? entity.FirstName : request.FirstName;
-            entity.LastName = string.IsNullOrWhiteSpace(request.LastName) ? entity.LastName : request.LastName;
-            entity.DateOfBirth = request.DateOfBirth ?? entity.DateOfBirth;
-            entity.Email = string.IsNullOrWhiteSpace(request.Email) ? entity.Email : request.Email;
-            entity.PhoneNumber = string.IsNullOrWhiteSpace(request.PhoneNumber) ? entity.PhoneNumber : request.PhoneNumber;
-            entity.IsExternal = request.IsExternal ?? entity.IsExternal;
-            entity.EmployeeId = request.EmployeeId != Guid.Empty ? request.EmployeeId : entity.EmployeeId;
-            entity.Status = !string.IsNullOrWhiteSpace(request.Status) && Enum.TryParse<UserStatus>(request.Status, true, out var parsedStatus)
-                            ? parsedStatus
-                            : entity.Status;
-
-
-            _userRepository.Update(entity);
-
-            result.Data = _mapper.Map<UserResponseDto>(entity);
-        }
-        catch (Exception ex)
-        {
-            result = ResponseDto.Error<UserResponseDto>(ex.Message);
-        }
-        return result;
-    }
-
     public async Task<ResponseDto<PaginationResponseDto<UserResponseDto>>> GetPaged(UserPaginationRequestDto requestDto)
     {
         var response = ResponseDto.Create<PaginationResponseDto<UserResponseDto>>();
@@ -244,6 +207,42 @@ public class UserService : IUserService
         catch (Exception ex)
         {
             result = ResponseDto.Error(ex.Message);
+        }
+        return result;
+    }
+
+    public async Task<ResponseDto<BaseUserRequestDto>> UpdatePartial(Guid id, BaseUserRequestDto request)
+    {
+         var result = ResponseDto.Create<BaseUserRequestDto>();
+        try
+        {
+            var entity = await _userRepository.GetByKeyAsync((Guid)id);
+            if (entity == null)
+            {
+                result = ResponseDto.Error<BaseUserRequestDto>("No se pudo encontrar el permiso");
+                return result;
+            }
+
+            entity.UserName = string.IsNullOrWhiteSpace(request.Username) ? entity.UserName : request.Username;
+            entity.FirstName = string.IsNullOrWhiteSpace(request.FirstName) ? entity.FirstName : request.FirstName;
+            entity.LastName = string.IsNullOrWhiteSpace(request.LastName) ? entity.LastName : request.LastName;
+            entity.DateOfBirth = request.DateOfBirth ?? entity.DateOfBirth;
+            entity.Email = string.IsNullOrWhiteSpace(request.Email) ? entity.Email : request.Email;
+            entity.PhoneNumber = string.IsNullOrWhiteSpace(request.PhoneNumber) ? entity.PhoneNumber : request.PhoneNumber;
+            entity.IsExternal = request.IsExternal ?? entity.IsExternal;
+            entity.EmployeeId = request.EmployeeId != Guid.Empty ? request.EmployeeId : entity.EmployeeId;
+            entity.Status = !string.IsNullOrWhiteSpace(request.Status) && Enum.TryParse<UserStatus>(request.Status, true, out var parsedStatus)
+                            ? parsedStatus
+                            : entity.Status;
+
+
+            _userRepository.Update(entity);
+
+            result.Data = _mapper.Map<BaseUserRequestDto>(entity);
+        }
+        catch (Exception ex)
+        {
+            result = ResponseDto.Error<BaseUserRequestDto>(ex.Message);
         }
         return result;
     }
