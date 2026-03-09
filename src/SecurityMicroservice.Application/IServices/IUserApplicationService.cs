@@ -13,7 +13,7 @@ namespace SecurityMicroservice.Application.IServices
         Task<List<UserApplicationDto>> GetByApplicationIdAsync(Guid applicationId);
         Task<ResponseDto<UserApplicationDto>> CreateAsync(CreateUserApplicationRequest request, bool isPublishEvent = true);
         Task<ResponseDto<UserApplicationDto>> UpdateAsync(Guid userId, Guid applicationId, UpdateUserApplicationRequest request);
-        Task<ResponseDto> DeleteAsync(Guid userId, Guid applicationId);
+        Task<ResponseDto> DeleteAsync(Guid userId, Guid applicationId, bool isPublishEvent = true);
         Task<ResponseDto<PaginationResponseDto<UserApplicationDto>>> GetPagedAsync(UserApplicationPaginationRequestDto requestDto);
     }
 }

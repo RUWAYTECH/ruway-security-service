@@ -51,6 +51,9 @@ public class EventUserManagementService
 
                 if (updateResult.IsValid && updateResult.Data != null)
                 {
+                    await RemoveUserFromApp(existingUserResponse.UserId.Value, peopleEvent.ApplicationCode);
+                    await AddUserToApp(peopleEvent.ApplicationCode, peopleEvent.RoleCode, existingUserResponse.UserId.Value);
+
                     return UserCreationResult.CreateSuccess(updateResult.Data.UserId, updateResult.Data.UserName, "");
                 }
                 else
@@ -110,7 +113,7 @@ public class EventUserManagementService
                     userModel.IsExternal ? "Empleado" : "Beneficiario",
                     $"{userModel.FirstName} {userModel.LastName}"
                 );
-                await AddUserToApp(userModel);
+                await AddUserToApp(userModel.ApplicationCode, userModel.RoleCode, userModel.UserReferenceId);
                 return UserCreationResult.CreateSuccess(result.Data.UserId, userModel.DocumentNumber, temporaryPassword);
             }
             else
@@ -154,7 +157,7 @@ public class EventUserManagementService
             .Select(s => s[random.Next(s.Length)]).ToArray());
     }
 
-    private async Task AddUserToApp(PeopleCreatedEvent peopleCreatedEvent)
+    private async Task AddUserToApp(string applicationCode, string roleCode, Guid userId)
     {
         try
         {
@@ -162,19 +165,19 @@ public class EventUserManagementService
             var userAppService = scope.ServiceProvider.GetRequiredService<IUserApplicationService>();
             var appService = scope.ServiceProvider.GetRequiredService<IApplicationService>();
             var roleService = scope.ServiceProvider.GetRequiredService<IRoleService>();
-            var app = await appService.GetByCodeAsync(peopleCreatedEvent.ApplicationCode??"MITALLA");
+            var app = await appService.GetByCodeAsync(applicationCode);
             var roles = await roleService.GetByApplicationIdAsync(app.Data.ApplicationId);
-            var roleId = roles.FirstOrDefault(a => a.Code == peopleCreatedEvent.RoleCode);
+            var roleId = roles.FirstOrDefault(a => a.Code == roleCode);
 
             if (roleId == null)
             {
-                _logger.LogWarning("No se encontró el rol {RoleCode} para la aplicación {AppCode}", peopleCreatedEvent.RoleCode, peopleCreatedEvent.ApplicationCode);
+                _logger.LogWarning("No se encontró el rol {RoleCode} para la aplicación {AppCode}", roleCode, applicationCode);
                 return;
             }
 
             await userAppService.CreateAsync(new SecurityMicroservice.Shared.Request.UserApplication.CreateUserApplicationRequest
             {
-                UserId = peopleCreatedEvent.UserReferenceId,
+                UserId = userId,
                 ApplicationId = app.Data.ApplicationId,
                 RoleIds = new List<Guid>()
                 {
@@ -185,8 +188,31 @@ public class EventUserManagementService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error agregando usuario a la aplicación para persona {PeopleId}", peopleCreatedEvent.UserReferenceId);
+            _logger.LogError(ex, "Error agregando usuario a la aplicación para usuario {UserId}", userId);
         }
         // Aquí podríamos agregar lógica para asignar el usuario a una aplicación específica si es necesario
+    }
+
+    private async Task RemoveUserFromApp(Guid userId, string appCode)
+    {
+        try
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var userAppService = scope.ServiceProvider.GetRequiredService<IUserApplicationService>();
+            var appService = scope.ServiceProvider.GetRequiredService<IApplicationService>();
+            var app = await appService.GetByCodeAsync(appCode);
+
+            if (app.Data == null)
+            {
+                _logger.LogWarning("No se encontró la aplicación {AppCode} para remover usuario {UserId}", appCode, userId);
+                return;
+            }
+
+            await userAppService.DeleteAsync(userId, app.Data.ApplicationId, isPublishEvent: false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error removiendo usuario {UserId} de la aplicación {AppCode}", userId, appCode);
+        }
     }
 }

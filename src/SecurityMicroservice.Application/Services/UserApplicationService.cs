@@ -158,10 +158,11 @@ public class UserApplicationService : IUserApplicationService
 
             if (request.RoleIds != null && request.RoleIds.Count > 0)
             {
-                if(exists!=null) {
+                if (exists != null)
+                {
                     await _userRoleService.DeleteByUserAndApplicationAsync(exists.UserId, exists.ApplicationId);
                 }
-               
+
                 foreach (var roleId in request.RoleIds)
                 {
                     var userRoles = await _userRoleService.CreateAsync(new Shared.Request.UserRole.CreateUserRoleRequest
@@ -172,7 +173,11 @@ public class UserApplicationService : IUserApplicationService
                     result.Messages.AddRange(userRoles.Messages);
                 }
             }
-            await PublishEventsAsync(user.UserId, application.ApplicationId);
+            if (isPublishEvent)
+            {
+                await PublishEventsAsync(user.UserId, application.ApplicationId);
+            }
+
         }
         catch (Exception ex)
         {
@@ -255,7 +260,7 @@ public class UserApplicationService : IUserApplicationService
 
         await _eventPublisher.PublishAsync(userUpdatedEvent);
     }
-    public async Task<ResponseDto> DeleteAsync(Guid userId, Guid applicationId)
+    public async Task<ResponseDto> DeleteAsync(Guid userId, Guid applicationId, bool isPublishEvent = true)
     {
         var result = ResponseDto.Create();
         try
@@ -278,8 +283,10 @@ public class UserApplicationService : IUserApplicationService
                 );
 
             await _userRoleService.DeleteByUserAndApplicationAsync(userId, application.ApplicationId);
-            await _eventPublisher.PublishAsync(userUpdatedEvent);
-
+            if (isPublishEvent)
+            {
+                await _eventPublisher.PublishAsync(userUpdatedEvent);
+            }
         }
         catch (Exception ex)
         {
