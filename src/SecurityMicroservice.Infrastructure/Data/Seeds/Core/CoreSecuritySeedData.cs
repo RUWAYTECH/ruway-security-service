@@ -44,7 +44,7 @@ public static class CoreSecuritySeedData
             Code = "SUPERADMIN",
             Name = "Super Administrador",
             Description = "Acceso total al sistema de seguridad",
-            IsActive = false,
+            IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
 
