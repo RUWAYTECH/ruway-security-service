@@ -33,8 +33,8 @@ public class EventUserManagementService
             var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
 
             // Buscar usuario por algún criterio único - como email + documentNumber
-            var existingUserResponse = await FindUserByPeopleDataAsync(peopleEvent.Email, peopleEvent.DocumentNumber);
-            if (existingUserResponse.Success && existingUserResponse.UserId.HasValue)
+            var existingUserResponse = await userService.FindUserByEmailAndDocumentNumber(peopleEvent.Email, peopleEvent.DocumentNumber);
+            if (existingUserResponse.Data.UserId != Guid.Empty)
             {
                 var updateRequest = new UserRequestDto
                 {
@@ -47,14 +47,14 @@ public class EventUserManagementService
                     Status = peopleEvent.IsActive ? "Active" : "Inactive"
                 };
 
-                var updateResult = await userService.Update(existingUserResponse.UserId.Value, updateRequest);
+                var updateResult = await userService.UpdatePartial(existingUserResponse.Data.UserId, updateRequest);
 
                 if (updateResult.IsValid && updateResult.Data != null)
                 {
-                    await RemoveUserFromApp(existingUserResponse.UserId.Value, peopleEvent.ApplicationCode);
-                    await AddUserToApp(peopleEvent.ApplicationCode, peopleEvent.RoleCode, existingUserResponse.UserId.Value);
+                    await RemoveUserFromApp(existingUserResponse.Data.UserId, peopleEvent.ApplicationCode);
+                    await AddUserToApp(peopleEvent.ApplicationCode, peopleEvent.RoleCode, existingUserResponse.Data.UserId);
 
-                    return UserCreationResult.CreateSuccess(updateResult.Data.UserId, updateResult.Data.UserName, "");
+                    return UserCreationResult.CreateSuccess(updateResult.Data.UserId.Value, updateResult.Data.Username, "");
                 }
                 else
                 {

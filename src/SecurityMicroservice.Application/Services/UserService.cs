@@ -23,7 +23,7 @@ public class UserService : IUserService
     private readonly WebAppSettings _webAppSettings;
 
     private readonly ILogger<UserService> _logger;
-    
+
     public UserService(
         IUserRepository userRepository,
         IPasswordService passwordService,
@@ -53,7 +53,8 @@ public class UserService : IUserService
         {
             var user = await _userRepository.GetFirstOrDefaultAsync(filter: x => x.UserId == userId);
             result.Data = user != null ? _mapper.Map<UserResponseDto>(user) : null;
-        } catch (Exception ex)
+        }
+        catch (Exception ex)
         {
             result = ResponseDto.Error<UserResponseDto>(ex.Message);
         }
@@ -101,7 +102,7 @@ public class UserService : IUserService
                 IsExternal = request.IsExternal ?? false,
                 EmployeeId = request.EmployeeId,
                 Status = UserStatus.Active,
-                
+
             };
             if (request.UserId.HasValue)
             {
@@ -111,11 +112,11 @@ public class UserService : IUserService
             _userRepository.Insert(user);
             try
             {
-            await BuildSendEmail.CreateUserEmail(_emailService, user.Email, user.FirstName, user.LastName, user.UserName, request.Password, _webAppSettings.Url);
+                await BuildSendEmail.CreateUserEmail(_emailService, user.Email, user.FirstName, user.LastName, user.UserName, request.Password, _webAppSettings.Url);
             }
             catch (Exception ex)
             {
-                 _logger.LogError(ex, "Error en enviar el correo de creación de usuario para {Email}", user.Email);
+                _logger.LogError(ex, "Error en enviar el correo de creación de usuario para {Email}", user.Email);
             }
             result.Data = _mapper.Map<UserResponseDto>(user);
         }
@@ -213,7 +214,7 @@ public class UserService : IUserService
 
     public async Task<ResponseDto<BaseUserRequestDto>> UpdatePartial(Guid id, BaseUserRequestDto request)
     {
-         var result = ResponseDto.Create<BaseUserRequestDto>();
+        var result = ResponseDto.Create<BaseUserRequestDto>();
         try
         {
             var entity = await _userRepository.GetByKeyAsync((Guid)id);
@@ -243,6 +244,25 @@ public class UserService : IUserService
         catch (Exception ex)
         {
             result = ResponseDto.Error<BaseUserRequestDto>(ex.Message);
+        }
+        return result;
+    }
+    public async Task<ResponseDto<UserResponseDto>> FindUserByEmailAndDocumentNumber(string email, string documentNumber)
+    {
+        var result = ResponseDto.Create<UserResponseDto>();
+        try
+        {
+            var user = await _userRepository.GetFirstOrDefaultAsync(filter: x => x.Email == email && x.UserName == documentNumber);
+            if (user == null)
+            {
+                result = ResponseDto.Error<UserResponseDto>("No se encontró el usuario");
+                return result;
+            }
+            result.Data = _mapper.Map<UserResponseDto>(user);
+        }
+        catch (Exception ex)
+        {
+            result = ResponseDto.Error<UserResponseDto>(ex.Message);
         }
         return result;
     }
