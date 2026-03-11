@@ -43,23 +43,27 @@ public static class SizePermissionsSeedData
         // Matriz de permisos: código de opción -> roles
         var permissionMatrix = new Dictionary<string, string[]>
         {
-            // ADMINISTRACIÓN
-            { "SIZE_OP001", new[] { "APPADMIN", "AV", "JC" } }, // Gestión de personal
-            // OPERACIONES
-            { "SIZE_OP002", new[] { "APPADMIN", "AV", "JC" } }, // Gestión de Clientes
-            { "SIZE_OP003", new[] { "APPADMIN", "AV", "JC" } }, // Asignación de Sastres
-            { "SIZE_OP004", new[] { "APPADMIN", "AV", "JC", "AC" } }, // Toma de Medida
-            { "SIZE_OP005", new[] { "APPADMIN", "AV", "JC", "AC" } }, // Clasificación de Talla
-            { "SIZE_OP006", new[] { "APPADMIN", "AV", "JC", "AC", "GG" } }, // Control de Calidad
-            { "SIZE_OP007", new[] { "APPADMIN", "AV", "JC" } }, // Programa de Ajustes
-            { "SIZE_OP016", new[] { "APPADMIN", "AV", "JC" } }, // Packing
-            // COMERCIAL Y LOGÍSTICA
-            { "SIZE_OP008", new[] { "APPADMIN", "AV", "JC" } }, // Registro de Ventas
-            { "SIZE_OP009", new[] { "APPADMIN", "AV", "JC" } }, // Distribución y Entrega
-            // MANTENIMIENTO
-            { "SIZE_OP010", new[] { "APPADMIN", "AV" } }, // Mantenimiento (si existe)
-            // REPORTES
-            { "SIZE_OP011", new[] { "APPADMIN", "AV", "JC", "AC", "GG", "GP" } }, // Reportes (si existe)
+            // MANTENIMIENTO (SIZE_M002)
+            { "SIZE_OP001", new[] { "APPADMIN", "AV" } },         // Medidas Corporales
+            { "SIZE_OP002", new[] { "APPADMIN", "AV" } },         // Tallas
+            { "SIZE_OP003", new[] { "APPADMIN", "AV" } },         // Tipo de Negocio
+            { "SIZE_OP004", new[] { "APPADMIN", "AV" } },         // Tipo de Proceso
+            { "SIZE_OP005", new[] { "APPADMIN", "AV" } },         // Tipos de Medida de Producto
+            { "SIZE_OP006", new[] { "APPADMIN", "AV" } },         // Instrucciones de Embalaje
+            // ADMINISTRACIÓN (SIZE_M003)
+            { "SIZE_OP007", new[] { "APPADMIN", "AV", "JC" } },   // Personal
+            { "SIZE_OP008", new[] { "APPADMIN", "AV", "JC" } },   // Clientes
+            { "SIZE_OP009", new[] { "APPADMIN", "AV" } },         // Tipo de Producto
+            { "SIZE_OP010", new[] { "APPADMIN", "AV", "JC" } },   // Ventas
+            // OPERACIONES (SIZE_M004)
+            { "SIZE_OP011", new[] { "APPADMIN", "AV", "JC" } },   // Asignación de Sastres
+            { "SIZE_OP012", new[] { "APPADMIN", "SASTRE" } }, // Toma de Medida
+            { "SIZE_OP013", new[] { "APPADMIN", "JC", "AC", "GG" } },     // Control de Calidad
+            { "SIZE_OP014", new[] { "APPADMIN", "AV", "JC" } },   // Programa de Ajustes
+            // LOGÍSTICA (SIZE_M005)
+            { "SIZE_OP015", new[] { "APPADMIN", "AV", "JC" } },   // Distribución y Entrega
+            // REPORTE (SIZE_M006)
+            { "SIZE_OP016", new[] { "APPADMIN", "AV", "JC", "AC", "GG" } }, // Conformidad
         };
 
         var permissions = new List<Permission>();
