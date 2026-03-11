@@ -31,7 +31,11 @@ public class EventUserManagementService
         {
             using var scope = _serviceProvider.CreateScope();
             var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
-
+            if (peopleEvent.IsActive == false)
+            {
+                await userService.Delete(peopleEvent.UserReferenceId);
+                return UserCreationResult.CreateSuccess(peopleEvent.UserReferenceId, peopleEvent.DocumentNumber, null);
+            }
             // Buscar usuario por algún criterio único - como email + documentNumber
             var existingUserResponse = await userService.FindUserByEmailAndDocumentNumber(peopleEvent.Email, peopleEvent.DocumentNumber);
             if (existingUserResponse.Data.UserId != Guid.Empty)
@@ -126,6 +130,37 @@ public class EventUserManagementService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error en CreateUserAsync");
+            return UserCreationResult.CreateError($"Error interno: {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
+    /// Elimina un usuario
+    /// </summary>
+    public async Task<UserCreationResult> DeleteUserAsync(Guid userId)
+    {
+        try
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
+            var entity = await userService.GetById(userId);
+            var result = await userService.Delete(userId);
+
+            if (result.IsValid && result.IsValid)
+            {
+                _logger.LogInformation("Usuario eliminado exitosamente: {UserId}", userId);
+                return UserCreationResult.CreateSuccess(userId, entity.Data.UserName, null);
+            }
+            else
+            {
+                var errorMessage = string.Join(", ", result.Messages.Select(m => m.Message));
+                _logger.LogWarning("Error eliminando usuario: {Error}", errorMessage);
+                return UserCreationResult.CreateError(errorMessage);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error en DeleteUserAsync");
             return UserCreationResult.CreateError($"Error interno: {ex.Message}", ex);
         }
     }

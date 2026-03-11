@@ -203,7 +203,7 @@ public class UserService : IUserService
                 return result;
             }
             entity.Status = UserStatus.Inactive;
-            _userRepository.Update(entity);
+            _userRepository.Delete(entity);
         }
         catch (Exception ex)
         {
@@ -253,6 +253,26 @@ public class UserService : IUserService
         try
         {
             var user = await _userRepository.GetFirstOrDefaultAsync(filter: x => x.Email == email && x.UserName == documentNumber);
+            if (user == null)
+            {
+                result = ResponseDto.Error<UserResponseDto>("No se encontró el usuario");
+                return result;
+            }
+            result.Data = _mapper.Map<UserResponseDto>(user);
+        }
+        catch (Exception ex)
+        {
+            result = ResponseDto.Error<UserResponseDto>(ex.Message);
+        }
+        return result;
+    }
+
+    public async Task<ResponseDto<UserResponseDto>> FindUserByDocumentNumber(string documentNumber)
+    {
+        var result = ResponseDto.Create<UserResponseDto>();
+        try
+        {
+            var user = await _userRepository.GetFirstOrDefaultAsync(filter: x => x.UserName == documentNumber);
             if (user == null)
             {
                 result = ResponseDto.Error<UserResponseDto>("No se encontró el usuario");

@@ -12,5 +12,6 @@ namespace SecurityMicroservice.Application.IServices
 
         public Task<ResponseDto<BaseUserRequestDto>> UpdatePartial(Guid id, BaseUserRequestDto requestDto);
         Task<ResponseDto<UserResponseDto>> FindUserByEmailAndDocumentNumber(string email, string documentNumber);
+        Task<ResponseDto<UserResponseDto>> FindUserByDocumentNumber(string documentNumber);
     }
 }

@@ -105,7 +105,7 @@ public class EventSubscriptionService : BackgroundService
 
             using var scope = _serviceProvider.CreateScope();
             var userManagementService = scope.ServiceProvider.GetRequiredService<EventUserManagementService>();
-
+    
             var result = await userManagementService.CreateUserAsync(peopleCreated);
 
             if (result.Success)
@@ -168,6 +168,29 @@ public class EventSubscriptionService : BackgroundService
         {
             _logger.LogError(ex, "Error procesando PeopleUpdated para persona {UserReferenceId}", 
                 peopleUpdated.UserReferenceId);
+        }
+    }
+
+    private async Task HandleUserDeletionAsync(PeopleDeletedEvent userDeleted)
+    {
+        try
+        {
+            _logger.LogInformation("Procesando evento UserDeleted para usuario {UserId}", userDeleted.UserId);
+            using var scope = _serviceProvider.CreateScope();
+            var userManagementService = scope.ServiceProvider.GetRequiredService<EventUserManagementService>();
+            var result = await userManagementService.DeleteUserAsync(userDeleted.UserId);
+            if (result.Success)
+            {
+                _logger.LogInformation("Usuario eliminado exitosamente: {UserId}", userDeleted.UserId);
+            }
+            else
+            {
+                _logger.LogWarning("Error eliminando usuario: {Error}", result.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error procesando UserDeleted para usuario {UserId}", userDeleted.UserId);
         }
     }
 
