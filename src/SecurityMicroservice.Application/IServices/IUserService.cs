@@ -11,5 +11,6 @@ namespace SecurityMicroservice.Application.IServices
         Task<ResponseDto<PaginationResponseDto<UserResponseDto>>> GetPaged(UserPaginationRequestDto requestDto);
 
         public Task<ResponseDto<BaseUserRequestDto>> UpdatePartial(Guid id, BaseUserRequestDto requestDto);
+        Task<ResponseDto<UserResponseDto>> FindUserByEmailAndDocumentNumber(string email, string documentNumber);
     }
 }
