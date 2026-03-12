@@ -42,6 +42,7 @@ public class EventUserManagementService
             {
                 var updateRequest = new UserRequestDto
                 {
+                    Username = peopleEvent.DocumentNumber,
                     FirstName = peopleEvent.FirstName,
                     LastName = peopleEvent.LastName,
                     Email = peopleEvent.Email,
