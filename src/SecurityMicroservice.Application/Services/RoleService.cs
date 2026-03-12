@@ -205,6 +205,10 @@ public class RoleService : IRoleService
             {
                 filter = filter.AndAlso(r => r.ApplicationId == requestDto.ApplicationId);
             }
+            if (!string.IsNullOrEmpty(requestDto.ApplicationCode))
+            {
+                filter = filter.AndAlso(r => r.Application.Code == requestDto.ApplicationCode);
+            }
 
             var currentUser = _httpContextAccessor.CurrentUser();
             if (currentUser.IsAppAdmin && !currentUser.IsSuperAdmin)
