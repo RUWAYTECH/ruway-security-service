@@ -37,7 +37,7 @@ public class EventUserManagementService
                 return UserCreationResult.CreateSuccess(peopleEvent.UserReferenceId, peopleEvent.DocumentNumber, null);
             }
             // Buscar usuario por algún criterio único - como email + documentNumber
-            var existingUserResponse = await userService.FindUserByEmailAndDocumentNumber(peopleEvent.Email, peopleEvent.DocumentNumber);
+            var existingUserResponse = await userService.GetById(peopleEvent.UserReferenceId);
             if (existingUserResponse.Data.UserId != Guid.Empty)
             {
                 var updateRequest = new UserRequestDto
@@ -49,6 +49,7 @@ public class EventUserManagementService
                     PhoneNumber = peopleEvent.Phone,
                     IsExternal = peopleEvent.IsExternal,
                     RoleCode = peopleEvent.RoleCode,
+                    EmployeeId = peopleEvent.EmployeeId,
                     Status = peopleEvent.IsActive ? "Active" : "Inactive"
                 };
 
