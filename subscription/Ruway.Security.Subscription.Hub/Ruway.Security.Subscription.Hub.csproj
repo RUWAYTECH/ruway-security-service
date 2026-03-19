@@ -11,8 +11,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Ruway.Events.Command" Version="1.0.4" />
-    <PackageReference Include="Ruway.Events.Command.Interfaces" Version="1.0.4" />
+    <PackageReference Include="Ruway.Events.Command" Version="1.0.5" />
+    <PackageReference Include="Ruway.Events.Command.Interfaces" Version="1.0.5" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.0" />

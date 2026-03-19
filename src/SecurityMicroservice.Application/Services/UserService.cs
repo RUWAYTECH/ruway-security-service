@@ -1,8 +1,10 @@
 using AutoMapper;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Ruway.Events.Command.Interfaces.Events;
 using SecurityMicroservice.Application.IServices;
 using SecurityMicroservice.Application.Services.Emails;
+using SecurityMicroservice.Domain.Constants;
 using SecurityMicroservice.Domain.Entities;
 using SecurityMicroservice.Infrastructure.IRepositories;
 using SecurityMicroservice.Infrastructure.Services;
@@ -23,6 +25,7 @@ public class UserService : IUserService
     private readonly WebAppSettings _webAppSettings;
 
     private readonly ILogger<UserService> _logger;
+    private readonly IEventPublisher _eventPublisher;
 
     public UserService(
         IUserRepository userRepository,
@@ -30,7 +33,8 @@ public class UserService : IUserService
         IMapper mapper,
         IEmailService emailService,
         IOptions<WebAppSettings> webAppSettings,
-        ILogger<UserService> logger)
+        ILogger<UserService> logger,
+        IEventPublisher eventPublisher)
     {
         _userRepository = userRepository;
         _passwordService = passwordService;
@@ -38,6 +42,7 @@ public class UserService : IUserService
         _emailService = emailService;
         _webAppSettings = webAppSettings.Value;
         _logger = logger;
+        _eventPublisher = eventPublisher;
     }
 
     public async Task<List<UserDto>> GetAllUsersAsync()
@@ -132,7 +137,7 @@ public class UserService : IUserService
         var response = ResponseDto.Create<PaginationResponseDto<UserResponseDto>>();
         try
         {
-            System.Linq.Expressions.Expression<System.Func<User, bool>> filter = x => x.Status == UserStatus.Active;
+            System.Linq.Expressions.Expression<System.Func<User, bool>> filter = x => true;
             if (!string.IsNullOrEmpty(requestDto.Filter))
             {
                 var filterLower = requestDto.Filter.ToLower();
@@ -203,6 +208,29 @@ public class UserService : IUserService
                 return result;
             }
             entity.Status = UserStatus.Inactive;
+
+            _userRepository.Update(entity);
+            await PublishEvent(entity.EmployeeId.Value, entity, entity.UserId);
+        }
+        catch (Exception ex)
+        {
+            result = ResponseDto.Error(ex.Message);
+        }
+        return result;
+    }
+
+    public async Task<ResponseDto> PhysicallyDelete(Guid id)
+    {
+        var result = ResponseDto.Create();
+        try
+        {
+            var entity = await _userRepository.GetFirstOrDefaultAsync(filter: x => x.UserId == (Guid)id);
+            if (entity == null)
+            {
+                result = ResponseDto.Error("No se pudo encontrar el permiso");
+                return result;
+            }
+            entity.Status = UserStatus.Inactive;
             _userRepository.Delete(entity);
         }
         catch (Exception ex)
@@ -217,7 +245,7 @@ public class UserService : IUserService
         var result = ResponseDto.Create<BaseUserRequestDto>();
         try
         {
-            var entity = await _userRepository.GetByKeyAsync((Guid)id);
+            var entity = await _userRepository.GetByKeyAsync(id);
             if (entity == null)
             {
                 result = ResponseDto.Error<BaseUserRequestDto>("No se pudo encontrar el permiso");
@@ -238,7 +266,6 @@ public class UserService : IUserService
 
 
             _userRepository.Update(entity);
-
             result.Data = _mapper.Map<BaseUserRequestDto>(entity);
         }
         catch (Exception ex)
@@ -286,4 +313,26 @@ public class UserService : IUserService
         }
         return result;
     }
+
+    public async Task PublishEvent(Guid? employeeId, User entity, Guid userId, bool isCreated = false)
+        {
+            if (!isCreated)
+            {
+                var userUpdatedEvent = new UserUpdatedEvent(
+                                    userId,
+                                    employeeId ?? Guid.Empty,
+                                    entity.UserName ?? "",
+                                    entity.Email ?? "",
+                                    entity.FirstName ?? "",
+                                    entity.LastName ?? "",
+                                    null,
+                                    null,
+                                    null,
+                                    entity.Status == UserStatus.Active ? true : false
+                               );
+
+                await _eventPublisher.PublishAsync(userUpdatedEvent);
+                Console.WriteLine($"Evento empleado actualizado enviado a RabbitMQ: {userUpdatedEvent}");
+            }
+        }
 }
