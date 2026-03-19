@@ -266,6 +266,7 @@ public class UserService : IUserService
 
 
             _userRepository.Update(entity);
+            await PublishEvent(entity.EmployeeId.Value, entity, entity.UserId);
             result.Data = _mapper.Map<BaseUserRequestDto>(entity);
         }
         catch (Exception ex)
