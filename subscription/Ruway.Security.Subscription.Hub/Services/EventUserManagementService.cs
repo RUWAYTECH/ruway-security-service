@@ -33,7 +33,7 @@ public class EventUserManagementService
             var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
             if (peopleEvent.IsActive == false)
             {
-                await userService.PhysicallyDelete(peopleEvent.UserReferenceId);
+                await userService.Delete(peopleEvent.UserReferenceId);
                 return UserCreationResult.CreateSuccess(peopleEvent.UserReferenceId, peopleEvent.DocumentNumber, null);
             }
             // Buscar usuario por algún criterio único - como email + documentNumber
@@ -146,7 +146,7 @@ public class EventUserManagementService
             using var scope = _serviceProvider.CreateScope();
             var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
             var entity = await userService.GetById(userId);
-            var result = await userService.Delete(userId);
+            var result = await userService.PhysicallyDelete(userId);
 
             if (result.IsValid && result.IsValid)
             {

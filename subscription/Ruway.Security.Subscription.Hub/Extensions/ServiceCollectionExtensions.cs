@@ -9,7 +9,6 @@ using SecurityMicroservice.Infrastructure.IRepositories;
 using SecurityMicroservice.Infrastructure.Repositories;
 using SecurityMicroservice.Infrastructure.Services;
 using SecurityMicroservice.Infrastructure.Data;
-using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using SecurityMicroservice.Shared.DTOs;

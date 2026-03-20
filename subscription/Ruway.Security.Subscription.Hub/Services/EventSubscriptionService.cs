@@ -41,6 +41,11 @@ public class EventSubscriptionService : BackgroundService
                     EventConstants.PeopleEvents.PeopleUpdated,
                     stoppingToken);
 
+                await _eventSubscriber.SubscribeAsync<PeopleDeletedEvent>(
+                    HandlePeopleDeletionAsync,
+                    EventConstants.PeopleEvents.PeopleDeleted,
+                    stoppingToken);
+
                 _logger.LogInformation("Suscripciones a eventos configuradas correctamente");
 
                 // Iniciar la escucha de eventos
@@ -171,7 +176,7 @@ public class EventSubscriptionService : BackgroundService
         }
     }
 
-    private async Task HandleUserDeletionAsync(PeopleDeletedEvent userDeleted)
+    private async Task HandlePeopleDeletionAsync(PeopleDeletedEvent userDeleted)
     {
         try
         {
