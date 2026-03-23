@@ -200,7 +200,7 @@ public class RoleService : IRoleService
         var response = ResponseDto.Create<PaginationResponseDto<RoleDto>>();
         try
         {
-            Expression<Func<Domain.Entities.Role, bool>>? filter = a => a.IsActive;
+            Expression<Func<Domain.Entities.Role, bool>>? filter = a => true;
             if (requestDto.ApplicationId != Guid.Empty)
             {
                 filter = filter.AndAlso(r => r.ApplicationId == requestDto.ApplicationId);
@@ -230,6 +230,11 @@ public class RoleService : IRoleService
                                (role.Description != null && role.Description.ToLower().Contains(searchFilter)) ||
                                role.Application.Name.ToLower().Contains(searchFilter) ||
                                role.Application.Code.ToLower().Contains(searchFilter);
+            }
+
+            if (requestDto.ListInactive == null)
+            {
+                filter = filter.AndAlso(r => r.IsActive == true);
             }
 
             // Ordenamiento por defecto: por fecha de creación descendente
