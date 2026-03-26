@@ -35,6 +35,14 @@ namespace SecurityMicroservice.Application.Services
                     OptionId = requestDto.OptionId,
                     ActionCode = requestDto.ActionCode
                 };
+                var validateExists = await _permissionRepository.GetFirstOrDefaultAsync(
+                    filter: x => x.RoleId == requestDto.RoleId
+                            && x.OptionId == requestDto.OptionId
+                            && x.ActionCode == requestDto.ActionCode
+                );
+                if (validateExists != null)
+                    return ResponseDto.Error<PermissionResponseDto>("Este permiso ya esta asignado a este Rol");
+
                 _permissionRepository.Insert(entity);
                 result.Data = _mapper.Map<PermissionResponseDto>(entity);
             }
@@ -86,6 +94,17 @@ namespace SecurityMicroservice.Application.Services
                 if (permission == null)
                 {
                     result = ResponseDto.Error<PermissionResponseDto>("No se pudo encontrar el permiso");
+                    return result;
+                }
+                var validateExists = await _permissionRepository.GetFirstOrDefaultAsync(
+                    filter: x => x.RoleId == dto.RoleId 
+                            && x.OptionId == dto.OptionId 
+                            && x.ActionCode == dto.ActionCode
+                            && x.PermissionId != (Guid)id
+                );
+                if (validateExists != null)
+                {
+                    result = ResponseDto.Error<PermissionResponseDto>("Este permiso ya esta asignado a este Rol");
                     return result;
                 }
 
