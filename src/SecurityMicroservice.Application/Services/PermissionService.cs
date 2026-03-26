@@ -62,6 +62,16 @@ namespace SecurityMicroservice.Application.Services
 
                 Func<IQueryable<Permission>, IOrderedQueryable<Permission>> orderBy = q => q.OrderBy(x => x.CreatedAt);
 
+                if (paginationRequestDto.Filter != null)
+                {
+                    var filterLower = paginationRequestDto.Filter.ToLower();
+
+
+                    filter = x =>
+                        (x.Option.Name != null && x.Option.Name.ToLower().Contains(filterLower)) ||
+                        (x.ActionCode != null && x.ActionCode.ToLower().Contains(filterLower));
+                }
+
                 var (items, totalRows) = await _permissionRepository.GetPagedAsync(
                     filter: filter,
                     orderBy: orderBy,
