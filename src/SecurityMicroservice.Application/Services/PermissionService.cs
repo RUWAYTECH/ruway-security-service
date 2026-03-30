@@ -7,6 +7,7 @@ using SecurityMicroservice.Domain.Entities;
 using SecurityMicroservice.Infrastructure.IRepositories;
 using SecurityMicroservice.Shared.Common;
 using SecurityMicroservice.Shared.DTOs;
+using SecurityMicroservice.Shared.Extensions;
 using SecurityMicroservice.Shared.Request.Permission;
 using SecurityMicroservice.Shared.Response.Common;
 using SecurityMicroservice.Shared.Response.Permission;
@@ -67,9 +68,9 @@ namespace SecurityMicroservice.Application.Services
                     var filterLower = paginationRequestDto.Filter.ToLower();
 
 
-                    filter = x =>
+                    filter = filter.AndAlso(x =>
                         (x.Option.Name != null && x.Option.Name.ToLower().Contains(filterLower)) ||
-                        (x.ActionCode != null && x.ActionCode.ToLower().Contains(filterLower));
+                        (x.ActionCode != null && x.ActionCode.ToLower().Contains(filterLower)));
                 }
 
                 var (items, totalRows) = await _permissionRepository.GetPagedAsync(
