@@ -51,6 +51,26 @@ public class ResetPasswordResponse
 }
 
 /// <summary>
+/// Request model for changing password on first login
+/// </summary>
+public class ChangePasswordRequest
+{
+    public Guid UserId { get; set; }
+    public string CurrentPassword { get; set; } = string.Empty;
+    public string NewPassword { get; set; } = string.Empty;
+    public string ConfirmPassword { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Response model for change password operation
+/// </summary>
+public class ChangePasswordResponse
+{
+    public bool Success { get; set; }
+    public string Message { get; set; } = string.Empty;
+}
+
+/// <summary>
 /// Standard API response model for generic operations
 /// </summary>
 public class ApiResponse<T>

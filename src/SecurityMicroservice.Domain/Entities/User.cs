@@ -18,7 +18,9 @@ public class User: BaseEntity
     public DateTime? LastLoginAt { get; set; }
 
     public string? PasswordResetToken { get; set; }
-    public DateTime? PasswordResetTokenExpires { get; set; }    
+    public DateTime? PasswordResetTokenExpires { get; set; }
+    public bool MustChangePassword { get; set; } = false;
+
     // Navigation properties
     public ICollection<UserApplication> UserApplications { get; set; } = new List<UserApplication>();
     public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();

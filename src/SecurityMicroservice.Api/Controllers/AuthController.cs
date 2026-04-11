@@ -163,6 +163,24 @@ public class AuthController : ControllerBase
         return BadRequest(result);
     }
 
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var result = await _authenticationService.ChangePasswordAsync(request);
+
+        if (result.Success)
+        {
+            return Ok(result);
+        }
+
+        return BadRequest(result);
+    }
+
     /// <summary>
     /// OAuth 2.0 Authorization endpoint (GET) - Initiates authorization flow
     /// Handles authorization requests and validates OAuth parameters
@@ -454,7 +472,8 @@ public class AuthController : ControllerBase
                 .SetClaim("first_name", user.FirstName)
                 .SetClaim("last_name", user.LastName)
                 .SetClaim("date_of_birth", user.DateOfBirth?.ToString("yyyy-MM-dd"))
-                .SetClaim(Claims.Email, user.Email);
+                .SetClaim(Claims.Email, user.Email)
+                .SetClaim("must_change_password", tokenResponse.MustChangePassword.ToString().ToLowerInvariant());
 
         // Set roles - force array by ensuring at least 2 claims if needed
         if (tokenResponse.Roles?.Any() == true)

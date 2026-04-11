@@ -107,7 +107,7 @@ public class UserService : IUserService
                 IsExternal = request.IsExternal ?? false,
                 EmployeeId = request.EmployeeId,
                 Status = UserStatus.Active,
-
+                MustChangePassword = true,
             };
             if (request.UserId.HasValue)
             {

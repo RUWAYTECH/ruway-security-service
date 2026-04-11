@@ -16,6 +16,7 @@ public interface IAuthenticationService
     Task UpdateLastLoginAsync(Guid userId);
     Task<ForgotPasswordResponse> ForgotPasswordAsync(ForgotPasswordRequest request);
     Task<ResetPasswordResponse> ResetPasswordAsync(ResetPasswordRequest request);
+    Task<ChangePasswordResponse> ChangePasswordAsync(ChangePasswordRequest request);
 }
 
 public class AuthenticationService : IAuthenticationService
@@ -78,7 +79,8 @@ public class AuthenticationService : IAuthenticationService
             FirstName = user.FirstName,
             LastName = user.LastName,
             Email = user.Email,
-            ExpiresIn = _tokenConfiguration.Value.AccessTokenLifetimeMinutes
+            ExpiresIn = _tokenConfiguration.Value.AccessTokenLifetimeMinutes,
+            MustChangePassword = user.MustChangePassword
         };
     }
 
@@ -143,6 +145,46 @@ public class AuthenticationService : IAuthenticationService
             //  await _auditService.LogAsync("User", AuditAction.PasswordChange, user.Id);
 
             response.Success = true;
+            return response;
+        }
+        catch (Exception ex)
+        {
+            response.Message = ex.Message;
+            return response;
+        }
+    }
+
+    public async Task<ChangePasswordResponse> ChangePasswordAsync(ChangePasswordRequest request)
+    {
+        var response = new ChangePasswordResponse { Success = false };
+        try
+        {
+            if (request.NewPassword != request.ConfirmPassword)
+            {
+                response.Message = "La nueva contraseña y su confirmación no coinciden.";
+                return response;
+            }
+
+            var user = await _userRepository.GetByIdAsync(request.UserId);
+            if (user == null)
+            {
+                response.Message = "Usuario no encontrado.";
+                return response;
+            }
+
+            if (!_passwordService.VerifyPassword(request.CurrentPassword, user.PasswordHash))
+            {
+                response.Message = "La contraseña actual es incorrecta.";
+                return response;
+            }
+
+            user.PasswordHash = _passwordService.HashPassword(request.NewPassword);
+            user.MustChangePassword = false;
+
+            _userRepository.Update(user);
+
+            response.Success = true;
+            response.Message = "Contraseña actualizada exitosamente.";
             return response;
         }
         catch (Exception ex)
