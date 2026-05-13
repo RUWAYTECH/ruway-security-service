@@ -52,7 +52,7 @@ public class UsersController : ControllerBase
     [HttpPut("{id}")]
     public async Task<ActionResult<UserDto>> UpdateUser(Guid id, BaseUserRequestDto request)
     {
-        var result = await _userService.UpdatePartial(id, request);
+        var result = await _userService.UpdatePartial(id, request, null);
         if (result.IsValid)
         {
             if (result.Data == null)
