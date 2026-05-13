@@ -240,7 +240,7 @@ public class UserService : IUserService
         return result;
     }
 
-    public async Task<ResponseDto<BaseUserRequestDto>> UpdatePartial(Guid id, BaseUserRequestDto request)
+    public async Task<ResponseDto<BaseUserRequestDto>> UpdatePartial(Guid id, BaseUserRequestDto request, string? password)
     {
         var result = ResponseDto.Create<BaseUserRequestDto>();
         try
@@ -250,6 +250,10 @@ public class UserService : IUserService
             {
                 result = ResponseDto.Error<BaseUserRequestDto>("No se pudo encontrar el permiso");
                 return result;
+            }
+            if (password != null)
+            {
+                entity.PasswordHash = _passwordService.HashPassword(password);
             }
 
             entity.UserName = string.IsNullOrWhiteSpace(request.Username) ? entity.UserName : request.Username;
@@ -267,6 +271,18 @@ public class UserService : IUserService
 
             _userRepository.Update(entity);
             await PublishEvent(entity.EmployeeId.Value, entity, entity.UserId);
+            if (password != null && entity != null)
+            {
+                try
+                {
+                    await BuildSendEmail.CreateUserEmail(_emailService, entity.Email, entity.FirstName, entity.LastName, entity.UserName, password, _webAppSettings.Url);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error en enviar el correo de creación de usuario para {Email}", entity.Email);
+                }
+            }
+            
             result.Data = _mapper.Map<BaseUserRequestDto>(entity);
         }
         catch (Exception ex)

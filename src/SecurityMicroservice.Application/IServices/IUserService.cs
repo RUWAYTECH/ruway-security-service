@@ -10,7 +10,7 @@ namespace SecurityMicroservice.Application.IServices
     {
         Task<ResponseDto<PaginationResponseDto<UserResponseDto>>> GetPaged(UserPaginationRequestDto requestDto);
 
-        public Task<ResponseDto<BaseUserRequestDto>> UpdatePartial(Guid id, BaseUserRequestDto requestDto);
+        public Task<ResponseDto<BaseUserRequestDto>> UpdatePartial(Guid id, BaseUserRequestDto requestDto, string? password);
         Task<ResponseDto<UserResponseDto>> FindUserByEmailAndDocumentNumber(string email, string documentNumber);
         Task<ResponseDto<UserResponseDto>> FindUserByDocumentNumber(string documentNumber);
         Task<ResponseDto> PhysicallyDelete(Guid id);

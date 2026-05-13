@@ -38,6 +38,7 @@ public class EventUserManagementService
             }
             // Buscar usuario por algún criterio único - como email + documentNumber
             var existingUserResponse = await userService.GetById(peopleEvent.UserReferenceId);
+            var temporaryPassword = "";
             if (existingUserResponse.Data.UserId != Guid.Empty)
             {
                 var updateRequest = new UserRequestDto
@@ -49,11 +50,15 @@ public class EventUserManagementService
                     PhoneNumber = peopleEvent.Phone,
                     IsExternal = peopleEvent.IsExternal,
                     RoleCode = peopleEvent.RoleCode,
-                    EmployeeId = peopleEvent.EmployeeId,
+                    EmployeeId = peopleEvent.EmployeeId != Guid.Empty ? peopleEvent.EmployeeId : existingUserResponse.Data.EmployeeId,
                     Status = peopleEvent.IsActive ? "Active" : "Inactive"
                 };
+                if (existingUserResponse.Data.Email != updateRequest.Email)
+                {
+                    temporaryPassword = GenerateTemporaryPassword();
+                }
 
-                var updateResult = await userService.UpdatePartial(existingUserResponse.Data.UserId, updateRequest);
+                var updateResult = await userService.UpdatePartial(existingUserResponse.Data.UserId, updateRequest, temporaryPassword);
 
                 if (updateResult.IsValid && updateResult.Data != null)
                 {
