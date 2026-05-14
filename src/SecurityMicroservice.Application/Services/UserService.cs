@@ -254,6 +254,7 @@ public class UserService : IUserService
             if (password != null)
             {
                 entity.PasswordHash = _passwordService.HashPassword(password);
+                entity.MustChangePassword = true;
             }
 
             entity.UserName = string.IsNullOrWhiteSpace(request.Username) ? entity.UserName : request.Username;
