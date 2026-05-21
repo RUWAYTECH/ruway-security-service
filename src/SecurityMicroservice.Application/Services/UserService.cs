@@ -251,11 +251,6 @@ public class UserService : IUserService
                 result = ResponseDto.Error<BaseUserRequestDto>("No se pudo encontrar el permiso");
                 return result;
             }
-            if (password != null)
-            {
-                entity.PasswordHash = _passwordService.HashPassword(password);
-                entity.MustChangePassword = true;
-            }
 
             entity.UserName = string.IsNullOrWhiteSpace(request.Username) ? entity.UserName : request.Username;
             entity.FirstName = string.IsNullOrWhiteSpace(request.FirstName) ? entity.FirstName : request.FirstName;
@@ -268,11 +263,14 @@ public class UserService : IUserService
             entity.Status = !string.IsNullOrWhiteSpace(request.Status) && Enum.TryParse<UserStatus>(request.Status, true, out var parsedStatus)
                             ? parsedStatus
                             : entity.Status;
-
+            if (!string.IsNullOrWhiteSpace(password) && entity.MustChangePassword == true)
+            {
+                entity.PasswordHash = _passwordService.HashPassword(password);
+            }
 
             _userRepository.Update(entity);
             await PublishEvent(entity.EmployeeId.Value, entity, entity.UserId);
-            if (password != null && entity != null)
+            if (password != null && entity != null && entity.MustChangePassword == true)
             {
                 try
                 {

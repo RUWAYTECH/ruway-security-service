@@ -20,6 +20,7 @@ public class UserApplicationService : IUserApplicationService
     private readonly IUserRepository _userRepository;
     private readonly IUserRoleService _userRoleService;
     private readonly IUserRoleRepository _userRoleRepository;
+    private readonly IRoleRepository _roleRepository;
 
     private readonly IApplicationRepository _applicationRepository;
 
@@ -31,7 +32,8 @@ public class UserApplicationService : IUserApplicationService
         IUserRepository userRepository,
         IApplicationRepository applicationRepository,
         IUserRoleService userRoleService,
-        IUserRoleRepository userRoleRepository
+        IUserRoleRepository userRoleRepository,
+        IRoleRepository roleRepository
         )
     {
         _userApplicationRepository = userApplicationRepository;
@@ -41,6 +43,7 @@ public class UserApplicationService : IUserApplicationService
         _applicationRepository = applicationRepository;
         _userRoleService = userRoleService;
         _userRoleRepository = userRoleRepository;
+        _roleRepository = roleRepository;
     }
 
     public async Task<List<UserApplicationDto>> GetAllAsync()
@@ -129,7 +132,7 @@ public class UserApplicationService : IUserApplicationService
                     }
                     if (isPublishEvent)
                     {
-                        await PublishEventsAsync(exists.UserId, exists.ApplicationId);
+                        await PublishEventsAsync(exists.UserId, exists.ApplicationId, request.RoleIds);
                     }
                     return result;
                 }
@@ -232,7 +235,7 @@ public class UserApplicationService : IUserApplicationService
                 }
             }
 
-            await PublishEventsAsync(userId, applicationId);
+            await PublishEventsAsync(userId, applicationId, request.RoleIds);
         }
         catch (Exception ex)
         {
@@ -241,11 +244,12 @@ public class UserApplicationService : IUserApplicationService
         return result;
     }
 
-    private async Task PublishEventsAsync(Guid userId, Guid applicationId)
+    private async Task PublishEventsAsync(Guid userId, Guid applicationId, List<Guid>? roleIds = null)
     {
         var user = await _userRepository.GetFirstOrDefaultAsync(filter: x => x.UserId == userId);
         var application = await _applicationRepository.GetFirstOrDefaultAsync(filter: x => x.ApplicationId == applicationId && x.IsActive);
         var userRoles = await _userRoleRepository.GetByUserIdAsync(userId, applicationId);
+        var rolesUpdate = await _roleRepository.GetAsync(filter: x => roleIds != null && roleIds.Contains(x.RoleId));
         var userUpdatedEvent = new UserUpdatedEvent(
             UserId: user.UserId,
             EmployeeId: user.EmployeeId,
@@ -254,8 +258,8 @@ public class UserApplicationService : IUserApplicationService
             LastName: user.LastName ?? "",
             Email: user.Email ?? "",
             ApplicationCode: application.Code ?? "",
-            RoleCodes: string.Join(",", userRoles.Select(a => a.Role.Code ?? "")),
-            RoleNames: string.Join(",", userRoles.Select(a => a.Role.Name ?? ""))
+            RoleCodes: string.Join(",", rolesUpdate.Select(a => a.Code ?? "")),
+            RoleNames: string.Join(",", rolesUpdate.Select(a => a.Name ?? ""))
             );
 
         await _eventPublisher.PublishAsync(userUpdatedEvent);
