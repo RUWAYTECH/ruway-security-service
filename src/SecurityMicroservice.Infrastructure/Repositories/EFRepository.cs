@@ -213,8 +213,8 @@ namespace SecurityMicroservice.Infrastructure.Repositories
         public virtual async Task<(List<TEntity> Items, int TotalRows)> GetPagedAsync(
                  Expression<Func<TEntity, bool>> filter = null,
                  Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null,
-                 int pageNumber = 0,
-                 int pageSize = 0,
+                 int pageNumber = 1,
+                 int pageSize = 10,
                  params Expression<Func<TEntity, object>>[] includeProperties)
         {
             var query = CreateDbSetQuery(filter, includeProperties);
@@ -222,7 +222,12 @@ namespace SecurityMicroservice.Infrastructure.Repositories
                 query = orderBy(query);
 
             int rowsCount = await query.CountAsync();
-            var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+            if (pageNumber > 0 && pageSize > 0)
+            {
+                query = query.Skip((pageNumber - 1) * pageSize).Take(pageSize);
+            }
+
+            var items = await query.ToListAsync();
             return (items, rowsCount);
         }
         
