@@ -73,6 +73,16 @@ public static class SizeRolesSeedData
                 Description = "Sastres",
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
+            },
+            new Role
+            {
+                RoleId = Guid.NewGuid(),
+                ApplicationId = sizeApp.ApplicationId,
+                Code = "PCB01",
+                Name = "Beneficiario",
+                Description = "Beneficiario",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
             }
         };
 

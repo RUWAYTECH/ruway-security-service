@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Options;
 using SecurityMicroservice.Application.IServices;
 using SecurityMicroservice.Application.Services.Emails;
+using SecurityMicroservice.Domain.Constants;
 using SecurityMicroservice.Domain.Entities;
 using SecurityMicroservice.Infrastructure.IRepositories;
 using SecurityMicroservice.Infrastructure.Services;
@@ -111,8 +112,10 @@ public class AuthenticationService : IAuthenticationService
         user.PasswordResetTokenExpires = DateTime.UtcNow.AddHours(1);
 
         _userRepository.Update(user);
-
-        await BuildSendEmail.ResetPasswordEmail(_emailService, user.Email, $"{user.FirstName} {user.LastName}", user.PasswordResetToken, _webAppSettings.Url);
+        if (request.ApplicationCode == ApplicationCodes.SizePortalClient)
+            await BuildSendEmail.ResetPasswordEmail(_emailService, user.Email, $"{user.FirstName} {user.LastName}", user.PasswordResetToken, _webAppSettings.PortalInternoUrl, request.ApplicationCode);
+        else
+            await BuildSendEmail.ResetPasswordEmail(_emailService, user.Email, $"{user.FirstName} {user.LastName}", user.PasswordResetToken, _webAppSettings.Url, request.ApplicationCode);
   
         // For now, just return success message
         return new ForgotPasswordResponse

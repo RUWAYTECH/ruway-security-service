@@ -9,6 +9,7 @@ public class ForgotPasswordRequest
     /// Username or email for password recovery
     /// </summary>
     public string Username { get; set; } = string.Empty;
+    public string? ApplicationCode { get; set; }
 }
 
 /// <summary>

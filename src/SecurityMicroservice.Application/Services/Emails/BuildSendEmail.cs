@@ -1,12 +1,13 @@
 using Scriban;
 using SecurityMicroservice.Application.IServices;
+using SecurityMicroservice.Domain.Constants;
 using static Rokys.Memo.Common.Constant.Constants;
 
 namespace SecurityMicroservice.Application.Services.Emails
 {
     public class BuildSendEmail
     {
-        public static async Task ResetPasswordEmail(IEmailService emailService, string email, string firstName, string token, string urlApp)
+        public static async Task ResetPasswordEmail(IEmailService emailService, string email, string firstName, string token, string urlApp, string? applicationCode)
         {
             var inputTexts = new Dictionary<string, object>
             {
