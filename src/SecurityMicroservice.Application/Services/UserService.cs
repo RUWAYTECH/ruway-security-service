@@ -117,7 +117,10 @@ public class UserService : IUserService
             _userRepository.Insert(user);
             try
             {
-                await BuildSendEmail.CreateUserEmail(_emailService, user.Email, user.FirstName, user.LastName, user.UserName, request.Password, _webAppSettings.Url);
+                if (request.IsSizing.HasValue && request.IsSizing.Value && user.IsExternal == true)
+                    await BuildSendEmail.CreateUserEmail(_emailService, user.Email, user.FirstName, user.LastName, user.UserName, request.Password, _webAppSettings.PortalInternoUrl);
+                else if (request.IsSizing.HasValue && request.IsSizing.Value == false && user.IsExternal == false)
+                    await BuildSendEmail.CreateUserEmail(_emailService, user.Email, user.FirstName, user.LastName, user.UserName, request.Password, _webAppSettings.Url);
             }
             catch (Exception ex)
             {

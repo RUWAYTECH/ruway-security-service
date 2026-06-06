@@ -111,7 +111,8 @@ public class EventUserManagementService
                 IsExternal = userModel.IsExternal,
                 EmployeeId = userModel.EmployeeId,
                 RoleCode = userModel.RoleCode,
-                Status = userModel.IsActive ? "Active" : "Inactive"
+                Status = userModel.IsActive ? "Active" : "Inactive",
+                IsSizing = userModel.IsSizing
             };
 
             var result = await userService.Create(userRequest);
