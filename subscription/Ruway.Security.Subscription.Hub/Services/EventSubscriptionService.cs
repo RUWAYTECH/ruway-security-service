@@ -183,7 +183,8 @@ public class EventSubscriptionService : BackgroundService
             _logger.LogInformation("Procesando evento UserDeleted para usuario {UserId}", userDeleted.UserId);
             using var scope = _serviceProvider.CreateScope();
             var userManagementService = scope.ServiceProvider.GetRequiredService<EventUserManagementService>();
-            var result = await userManagementService.DeleteUserAsync(userDeleted.UserId);
+            var userId = userDeleted.UserId;
+            var result = await userManagementService.DeleteUserAsync(userDeleted);
             if (result.Success)
             {
                 _logger.LogInformation("Usuario eliminado exitosamente: {UserId}", userDeleted.UserId);

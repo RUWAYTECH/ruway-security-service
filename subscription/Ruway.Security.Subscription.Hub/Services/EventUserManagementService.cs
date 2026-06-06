@@ -144,19 +144,19 @@ public class EventUserManagementService
     /// <summary>
     /// Elimina un usuario
     /// </summary>
-    public async Task<UserCreationResult> DeleteUserAsync(Guid userId)
+    public async Task<UserCreationResult> DeleteUserAsync(PeopleDeletedEvent userEvent)
     {
         try
         {
             using var scope = _serviceProvider.CreateScope();
             var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
-            var entity = await userService.GetById(userId);
-            var result = await userService.PhysicallyDelete(userId);
+            var entity = await userService.GetById(userEvent.UserId);
+            var result = await userService.PhysicallyDelete(userEvent.UserId);
 
             if (result.IsValid && result.IsValid)
             {
-                _logger.LogInformation("Usuario eliminado exitosamente: {UserId}", userId);
-                return UserCreationResult.CreateSuccess(userId, entity.Data.UserName, null);
+                _logger.LogInformation("Usuario eliminado exitosamente: {UserId}", userEvent.UserId);
+                return UserCreationResult.CreateSuccess(userEvent.UserId, entity.Data.UserName, null);
             }
             else
             {
