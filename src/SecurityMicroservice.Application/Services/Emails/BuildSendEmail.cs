@@ -29,7 +29,7 @@ namespace SecurityMicroservice.Application.Services.Emails
                 ["EmployeeFullName"] = firstName + " " + lastName,
                 ["Username"] = username,
                 ["Password"] = password,
-                ["LoginUrl"] = $"{urlApp}"
+                ["LoginUrl"] = $"{urlApp}/login"
             };
 
             var emailTemplate = Path.Combine(AppContext.BaseDirectory, MailTemplate.CreateUser);
