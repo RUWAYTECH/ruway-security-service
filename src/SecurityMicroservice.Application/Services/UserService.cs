@@ -4,7 +4,6 @@ using Microsoft.Extensions.Options;
 using Ruway.Events.Command.Interfaces.Events;
 using SecurityMicroservice.Application.IServices;
 using SecurityMicroservice.Application.Services.Emails;
-using SecurityMicroservice.Domain.Constants;
 using SecurityMicroservice.Domain.Entities;
 using SecurityMicroservice.Infrastructure.IRepositories;
 using SecurityMicroservice.Infrastructure.Services;
@@ -115,17 +114,10 @@ public class UserService : IUserService
             }
 
             _userRepository.Insert(user);
-            try
-            {
-                if (request.IsSizing.HasValue && request.IsSizing.Value && user.IsExternal == true)
-                    await BuildSendEmail.CreateUserEmail(_emailService, user.Email, user.FirstName, user.LastName, user.UserName, request.Password, _webAppSettings.PortalInternoUrl);
-                else if (request.IsSizing.HasValue && request.IsSizing.Value == false && user.IsExternal == false)
-                    await BuildSendEmail.CreateUserEmail(_emailService, user.Email, user.FirstName, user.LastName, user.UserName, request.Password, _webAppSettings.Url);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error en enviar el correo de creación de usuario para {Email}", user.Email);
-            }
+            if (request.IsSizing.HasValue && request.IsSizing.Value && user.IsExternal == true)
+                await BuildSendEmail.CreateUserEmail(_emailService, user.Email, user.FirstName, user.LastName, user.UserName, request.Password, _webAppSettings.PortalInternoUrl);
+            else if (request.IsSizing.HasValue && request.IsSizing.Value == false && user.IsExternal == false)
+                await BuildSendEmail.CreateUserEmail(_emailService, user.Email, user.FirstName, user.LastName, user.UserName, request.Password, _webAppSettings.Url);
             result.Data = _mapper.Map<UserResponseDto>(user);
         }
         catch (Exception ex)

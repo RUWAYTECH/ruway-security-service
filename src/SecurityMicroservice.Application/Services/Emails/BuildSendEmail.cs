@@ -1,6 +1,5 @@
 using Scriban;
 using SecurityMicroservice.Application.IServices;
-using SecurityMicroservice.Domain.Constants;
 using static Rokys.Memo.Common.Constant.Constants;
 
 namespace SecurityMicroservice.Application.Services.Emails
@@ -29,12 +28,10 @@ namespace SecurityMicroservice.Application.Services.Emails
                 ["EmployeeFullName"] = firstName + " " + lastName,
                 ["Username"] = username,
                 ["Password"] = password,
-                ["LoginUrl"] = $"{urlApp}/login"
+                ["LoginUrl"] = $"{urlApp}"
             };
 
-            var emailTemplate = Path.Combine(AppContext.BaseDirectory, MailTemplate.CreateUser);
-
-            var templateText = File.ReadAllText(emailTemplate);
+            var templateText = File.ReadAllText(MailTemplate.CreateUser);
             var template = Template.Parse(templateText);
             var htmlBody = template.Render(inputTexts);
 
