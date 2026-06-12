@@ -19,7 +19,7 @@ public class User: BaseEntity
 
     public string? PasswordResetToken { get; set; }
     public DateTime? PasswordResetTokenExpires { get; set; }
-    public bool MustChangePassword { get; set; } = false;
+    public bool MustChangePassword { get; set; } = true;
 
     // Navigation properties
     public ICollection<UserApplication> UserApplications { get; set; } = new List<UserApplication>();
