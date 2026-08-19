@@ -276,6 +276,11 @@ public class UserApplicationService : IUserApplicationService
                 return result;
             }
             var application = await _applicationRepository.GetFirstOrDefaultAsync(filter: x => x.ApplicationId == applicationId && x.IsActive);
+            if (application == null)
+            {
+                result = ResponseDto.Error("La aplicación no existe o no está activa.");
+                return result;
+            }
 
             userApplication.UpdatedAt = DateTime.UtcNow;
             userApplication.IsActive = false;

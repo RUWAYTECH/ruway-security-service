@@ -18,7 +18,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.0" />
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="FluentAssertions" Version="6.12.1" />
   </ItemGroup>
@@ -27,5 +27,6 @@
     <ProjectReference Include="..\..\src\SecurityMicroservice.Api\SecurityMicroservice.Api.csproj" />
     <ProjectReference Include="..\..\src\SecurityMicroservice.Application\SecurityMicroservice.Application.csproj" />
     <ProjectReference Include="..\..\src\SecurityMicroservice.Infrastructure\SecurityMicroservice.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\subscription\Ruway.Security.Subscription.Hub\Ruway.Security.Subscription.Hub.csproj" />
   </ItemGroup>
 </Project>

@@ -7,6 +7,7 @@ using SecurityMicroservice.Infrastructure.Data;
 using SecurityMicroservice.Infrastructure.IRepositories;
 using SecurityMicroservice.Infrastructure.Repositories;
 using SecurityMicroservice.Infrastructure.Services;
+using SecurityMicroservice.Shared.Common;
 using SecurityMicroservice.Shared.DTOs;
 using Xunit;
 
@@ -33,7 +34,8 @@ public class AuthenticationServiceTests : IDisposable
         _tokenConfig = Options.Create(new TokenConfiguration()); 
         
 
-        _authenticationService = new AuthenticationService(_userRepository, _passwordService, _tokenConfig, null, null);
+        _authenticationService = new AuthenticationService(
+            _userRepository, _passwordService, _tokenConfig, null!, Options.Create(new WebAppSettings()));
     }
 
     [Fact]

@@ -68,15 +68,34 @@ public class UserService : IUserService
     public async Task<ResponseDto<UserResponseDto>> Create(UserRequestDto request)
     {
         var result = ResponseDto.Create<UserResponseDto>();
+        User? createdUser = null;
         try
         {
+            // La búsqueda es solo por UserName porque es la clave única real (hay índice único en
+            // Users.UserName). Cruzarla con EmployeeId hacía que a un beneficiario que pasa a
+            // colaborador no se le encontrara, y se intentara insertar un duplicado que viola
+            // ese índice.
             var validationUser = await _userRepository.GetFirstOrDefaultAsync(
                 filter: x => x.UserName == request.Username
-                        && (!request.EmployeeId.HasValue || x.EmployeeId == request.EmployeeId)
             );
 
             if (validationUser != null)
             {
+                // Mismo documento, y ahora llega con EmployeeId: la persona ya existía como
+                // beneficiario y además pasa a ser colaborador. Se le enlaza el empleado en vez
+                // de rechazar el alta; el llamador después le asigna la nueva aplicación y rol.
+                if (request.EmployeeId.HasValue && !validationUser.EmployeeId.HasValue)
+                {
+                    validationUser.EmployeeId = request.EmployeeId;
+                    validationUser.IsExternal = request.IsExternal ?? validationUser.IsExternal;
+                    validationUser.Status = UserStatus.Active;
+                    _userRepository.Update(validationUser);
+
+                    // Sin correo de bienvenida: ya tiene credenciales de su alta anterior.
+                    result.Data = _mapper.Map<UserResponseDto>(validationUser);
+                    return result;
+                }
+
                 switch (validationUser.Status)
                 {
                     case UserStatus.Inactive:
@@ -114,17 +133,57 @@ public class UserService : IUserService
             }
 
             _userRepository.Insert(user);
-            if (request.IsSizing.HasValue && request.IsSizing.Value && user.IsExternal == true)
-                await BuildSendEmail.CreateUserEmail(_emailService, user.Email, user.FirstName, user.LastName, user.UserName, request.Password, _webAppSettings.PortalInternoUrl);
-            else if (request.IsSizing.HasValue && request.IsSizing.Value == false && user.IsExternal == false)
-                await BuildSendEmail.CreateUserEmail(_emailService, user.Email, user.FirstName, user.LastName, user.UserName, request.Password, _webAppSettings.Url);
             result.Data = _mapper.Map<UserResponseDto>(user);
+            createdUser = user;
         }
         catch (Exception ex)
         {
             result = ResponseDto.Error<UserResponseDto>(ex.Message);
         }
+
+        // El correo va FUERA del try que decide si el alta es válida. El usuario ya quedó
+        // guardado (Insert hace SaveChanges), así que un fallo aquí —plantilla, SMTP— no puede
+        // marcar como fallida un alta que sí ocurrió, ni impedir que el llamador le asigne
+        // después la aplicación y el rol.
+        if (createdUser != null)
+        {
+            await TrySendCreateUserEmail(createdUser, request);
+        }
+
         return result;
+    }
+
+    private async Task TrySendCreateUserEmail(User user, UserRequestDto request)
+    {
+        try
+        {
+            // El portal lo decide quién es la persona, no el tipo de venta: IsExternal=true es
+            // beneficiario y entra al portal del beneficiario (PortalInternoUrl, pese al nombre);
+            // el resto entra al panel admin (Url). Antes esto se cruzaba con IsSizing y solo
+            // existían dos de las cuatro combinaciones, así que los beneficiarios de ventas que
+            // no son de sizing quedaban sin rama: se creaban sin credenciales y sin log.
+            var urlApp = user.IsExternal ? _webAppSettings.PortalInternoUrl : _webAppSettings.Url;
+
+            if (string.IsNullOrWhiteSpace(urlApp))
+            {
+                _logger.LogError(
+                    "No se envió el correo de creación a {UserName}: falta configurar WebApp:{Setting} para {Destino}",
+                    user.UserName,
+                    user.IsExternal ? "PortalInternoUrl" : "Url",
+                    user.IsExternal ? "el portal del beneficiario" : "el panel admin");
+                return;
+            }
+
+            await BuildSendEmail.CreateUserEmail(
+                _emailService, user.Email ?? "", user.FirstName ?? "", user.LastName ?? "",
+                user.UserName, request.Password, urlApp);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "No se pudo enviar el correo de creación de usuario para {UserName} ({Email})",
+                user.UserName, user.Email);
+        }
     }
 
     public async Task<ResponseDto<PaginationResponseDto<UserResponseDto>>> GetPaged(UserPaginationRequestDto requestDto)
@@ -205,7 +264,7 @@ public class UserService : IUserService
             entity.Status = UserStatus.Inactive;
 
             _userRepository.Update(entity);
-            await PublishEvent(entity.EmployeeId.Value, entity, entity.UserId);
+            await TryPublishEvent(entity.EmployeeId, entity, entity.UserId);
         }
         catch (Exception ex)
         {
@@ -264,7 +323,7 @@ public class UserService : IUserService
             }
 
             _userRepository.Update(entity);
-            await PublishEvent(entity.EmployeeId.Value, entity, entity.UserId);
+            await TryPublishEvent(entity.EmployeeId, entity, entity.UserId);
             if (password != null && entity != null && entity.MustChangePassword == true)
             {
                 try
@@ -323,6 +382,23 @@ public class UserService : IUserService
             result = ResponseDto.Error<UserResponseDto>(ex.Message);
         }
         return result;
+    }
+
+    /// <summary>
+    /// Publica el evento sin arrastrar al llamador si RabbitMQ falla: el cambio en BD ya se
+    /// persistió (Update hace SaveChanges), así que un broker caído no debe convertir una
+    /// operación ya commiteada en un error.
+    /// </summary>
+    private async Task TryPublishEvent(Guid? employeeId, User entity, Guid userId, bool isCreated = false)
+    {
+        try
+        {
+            await PublishEvent(employeeId, entity, userId, isCreated);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "No se pudo publicar el evento de usuario {UserId} en RabbitMQ.", userId);
+        }
     }
 
     public async Task PublishEvent(Guid? employeeId, User entity, Guid userId, bool isCreated = false)
