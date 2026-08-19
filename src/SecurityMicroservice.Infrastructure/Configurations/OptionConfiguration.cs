@@ -27,6 +27,10 @@ public class OptionConfiguration : IEntityTypeConfiguration<Option>
             .IsRequired()
             .HasMaxLength(20);
         
+        builder.Property(o => o.Order)
+            .IsRequired()
+            .HasDefaultValue(0);
+
         builder.Property(o => o.IsActive)
             .IsRequired();
         

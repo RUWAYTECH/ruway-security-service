@@ -28,5 +28,6 @@ public class MenuOptionDto
     public string Route { get; set; } = string.Empty;
     public string HttpMethod { get; set; } = string.Empty;
     public string Icon { get; set; } = string.Empty;
+    public int Order { get; set; }
     public List<string> AllowedActions { get; set; } = new();
 }

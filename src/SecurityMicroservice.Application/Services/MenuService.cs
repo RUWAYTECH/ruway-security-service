@@ -65,6 +65,8 @@ public class MenuService : IMenuService
             // Agrupar por opciones
             var optionGroups = moduleGroup
                 .GroupBy(p => p.Option)
+                .OrderBy(g => g.Key.Order)
+                .ThenBy(g => g.Key.Name)
                 .ToList();
 
             var moduleDto = new ModuleDto
@@ -97,6 +99,7 @@ public class MenuService : IMenuService
                         Route = option.Route,
                         HttpMethod = option.HttpMethod,
                         Icon = option.Icon,
+                        Order = option.Order,
                         AllowedActions = allowedActions
                     };
 
@@ -138,6 +141,7 @@ public class MenuService : IMenuService
             var moduleGroups = appGroup
                 .GroupBy(p => p.Option.Module)
                 .OrderBy(g => g.Key.Order)
+                .ThenBy(g => g.Key.Name)
                 .ToList();
 
             var menuDto = new MenuDto
@@ -186,6 +190,7 @@ public class MenuService : IMenuService
                             Route = option.Route,
                             HttpMethod = option.HttpMethod,
                             Icon = option.Icon,
+                            Order = option.Order,
                             AllowedActions = allowedActions
                         };
 

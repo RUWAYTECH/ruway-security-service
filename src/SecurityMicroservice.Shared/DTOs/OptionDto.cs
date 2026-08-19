@@ -11,6 +11,7 @@ public class OptionDto : AuditEntityDto
     public string Icon { get; set; } = string.Empty;
     public string Route { get; set; } = string.Empty;
     public string HttpMethod { get; set; } = string.Empty;
+    public int Order { get; set; }
     public bool IsActive { get; set; } = true;
     
     // Navigation properties

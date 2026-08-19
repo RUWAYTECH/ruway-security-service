@@ -82,6 +82,9 @@ public class OptionService : IOptionService
             var option = _mapper.Map<Option>(request);
             option.OptionId = Guid.NewGuid();
             option.CreatedAt = DateTime.UtcNow;
+            // Si no se especifica orden, va al final del módulo
+            option.Order = request.Order
+                ?? await _optionRepository.GetMaxOrderByModuleIdAsync(request.ModuleId) + 1;
 
             _optionRepository.Insert(option);
 
@@ -129,6 +132,8 @@ public class OptionService : IOptionService
                 option.Route = request.Route;
             if (!string.IsNullOrEmpty(request.HttpMethod))
                 option.HttpMethod = request.HttpMethod;
+            if (request.Order.HasValue)
+                option.Order = request.Order.Value;
             if (request.IsActive.HasValue)
                 option.IsActive = request.IsActive.Value;
 
@@ -183,6 +188,7 @@ public class OptionService : IOptionService
             Func<IQueryable<Option>, IOrderedQueryable<Option>> orderBy = q => 
                 q.OrderBy(o => o.Module.Application.Code)
                  .ThenBy(o => o.Module.Order)
+                 .ThenBy(o => o.Order)
                  .ThenBy(o => o.Name);
 
             var (items, totalRows) = await _optionRepository.GetPagedAsync(

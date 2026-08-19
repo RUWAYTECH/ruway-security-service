@@ -17,7 +17,8 @@ public class OptionRepository : EFRepository<Option>, IOptionRepository
             .Include(o => o.Module)
                 .ThenInclude(m => m.Application)
             .Where(o => o.ModuleId == moduleId)
-            .OrderBy(o => o.Name)
+            .OrderBy(o => o.Order)
+            .ThenBy(o => o.Name)
             .ToListAsync();
     }
 
@@ -28,8 +29,16 @@ public class OptionRepository : EFRepository<Option>, IOptionRepository
                 .ThenInclude(m => m.Application)
             .Where(o => o.Module.Application.Code == applicationCode)
             .OrderBy(o => o.Module.Order)
+            .ThenBy(o => o.Order)
             .ThenBy(o => o.Name)
             .ToListAsync();
+    }
+
+    public async Task<int> GetMaxOrderByModuleIdAsync(Guid moduleId)
+    {
+        return await Db.Options
+            .Where(o => o.ModuleId == moduleId)
+            .MaxAsync(o => (int?)o.Order) ?? 0;
     }
 
     public async Task<Option?> GetByCodeAsync(string code)
